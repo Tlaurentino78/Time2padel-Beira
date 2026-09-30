@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Mix 4 Novo</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f4f4;color:#222}
+header{background:#303030;color:#fff;padding:18px;text-align:center;font-size:25px;font-weight:700}
+main{max-width:1000px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #0001}
+h2{margin:0 0 14px;background:#20c968;color:#fff;padding:14px;border-radius:12px}
+label{font-weight:700}
+input,select,textarea{font-size:18px;padding:10px;border:1px solid #bbb;border-radius:8px;box-sizing:border-box}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.team{margin-bottom:10px}
+textarea{width:100%;min-height:150px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-option{display:flex;align-items:center;gap:12px;border:2px solid #ccc;border-radius:12px;padding:14px;font-size:19px;background:#fafafa}
+.field-option input{width:25px;height:25px;accent-color:#20c968}
+.field-option.selected{border-color:#20c968;background:#eafff2}
+.notice{font-weight:700;margin-top:12px}
+.ok{color:#148743}.err{color:#b00020}
+.order{overflow-x:auto}
+.courts{display:grid;grid-template-columns:1fr 1fr;min-width:650px}
+.court{border:1px solid #ddd}
+.court h3{background:#20c968;color:#fff;text-align:center;margin:0;padding:12px}
+.match{padding:14px;border-bottom:1px solid #ddd;min-height:125px}
+.match small{display:block;color:#777;margin-bottom:7px}
+.score{display:flex;gap:8px;align-items:center;margin-top:10px}
+.score input{width:70px;text-align:center;font-size:22px}
+.locked{color:#148743;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+.champ{font-weight:800}
+button{background:#20c968;color:white;border:0;border-radius:9px;padding:12px 18px;font-size:17px;font-weight:700}
+button.secondary{background:#555}
+@media(max-width:650px){.grid2{grid-template-columns:1fr}.field-grid{grid-template-columns:1fr}}
+
+.final-table{margin-top:14px;border:2px solid #20cf68;border-radius:14px;overflow:hidden;background:#fff}
+.final-table-title{background:#20cf68;color:#fff;padding:12px 14px;font-size:20px;font-weight:900}
+.final-row{display:grid;grid-template-columns:48px 1fr 62px 50px 62px;gap:6px;align-items:center;padding:11px 10px;border-bottom:1px solid #e5e5e5;font-size:13px}
+.final-row.header{background:#f3f3f3;font-weight:900;font-size:12px;color:#555}
+.final-row.champ{background:#fff8d8;border-left:6px solid #f2c300;padding-left:4px}
+.final-pos{font-weight:900;font-size:17px;text-align:center}
+.final-team{font-weight:800;line-height:1.25}
+.final-stat{text-align:center;font-weight:800}
+.champ-badge{display:inline-block;margin-top:4px;padding:3px 7px;border-radius:999px;background:#f2c300;font-size:10px;color:#5c4700;font-weight:900}
+@media(max-width:520px){.final-row{grid-template-columns:38px 1fr 52px 40px 52px;font-size:12px}.final-row.header{font-size:10px}}
+
+.games-table{margin-top:14px;border:2px solid #20cf68;border-radius:14px;overflow:hidden;background:#fff}
+.games-table-title{background:#20cf68;color:#fff;padding:12px 14px;font-size:20px;font-weight:900}
+.games-table-wrap{overflow-x:auto}
+.games-table table{width:100%;border-collapse:collapse;min-width:560px}
+.games-table th{background:#f3f3f3;font-size:12px}
+.games-table th,.games-table td{padding:9px 8px;border-bottom:1px solid #e5e5e5;text-align:center}
+.games-table th:nth-child(3),.games-table td:nth-child(3){text-align:left}
+.games-table .played{font-weight:800}
+.games-table .pending{color:#999}
+.games-table .winner{font-weight:900}
+.games-table .round-final{background:#fff8d8}
+</style>
+</head>
+<body>
+<header>🎾 Time2Padel — Mix 4</header>
+<main>
+<div class="card">
+<h2>📋 Dados do Mix</h2>
+<div class="grid2">
+<div><label>Nível do Mix</label><br><select id="level">
+<option>Escolher nível</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option>
+<option>F1</option><option>F2</option><option>F3</option><option>F4</option><option>F5</option><option>Misto</option><option>Ladies</option>
+</select></div>
+<div><label>Data do Mix</label><br><input id="date" type="date"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>👥 Equipas / Jogadores</h2>
+<textarea id="teams" placeholder="1- Nome / Nome
+2- Nome / Nome
+3- Nome / Nome
+4- Nome / Nome"></textarea>
+<p>Uma equipa por linha. Formato: <b>1- Nome / Nome</b></p>
+<p id="playerDbStatus" class="notice">🔄 A carregar Base de Dados de Jogadores...</p>
+</div>
+
+<div class="card">
+<h2>🏟️ ESCOLHER OS 2 CAMPOS</h2>
+<p><b>Marca exactamente 2 campos.</b> O primeiro escolhido fica à esquerda e o segundo à direita. Os mesmos campos serão usados nas 4 rondas.</p>
+<div class="field-grid" id="fields">
+<label class="field-option"><input type="checkbox" value="Visioluz">Visioluz</label>
+<label class="field-option"><input type="checkbox" value="Mozfert">Mozfert</label>
+<label class="field-option"><input type="checkbox" value="Orangefreight">Orangefreight</label>
+<label class="field-option"><input type="checkbox" value="Lenmed-MSS">Lenmed-MSS</label>
+<label class="field-option"><input type="checkbox" value="F Chiveve">F Chiveve</label>
+<label class="field-option"><input type="checkbox" value="Time2padel">Time2padel</label>
+</div>
+<div id="fieldMsg" class="notice"></div>
+</div>
+
+<div class="card">
+<h2>🎾 Ordem de Jogos</h2>
+<div id="status" class="notice"></div>
+<div class="order"><div class="courts" id="courts"></div></div>
+</div>
+
+<div class="card">
+<h2>📋 Todos os Jogos e Resultados</h2>
+<div id="gamesResults"></div>
+</div>
+
+<div class="card">
+<h2>📊 Classificação</h2>
+<div id="ranking"></div>
+</div>
+
+<div class="card">
+<button onclick="resetAll()">🔄 Novo Mix</button>
+<button class="secondary" onclick="clearScores()">🧹 Limpar resultados</button>
+</div>
+</main>
+
+<script>
+const KEY='t2p_mix4_novo_v3';
+const SUPABASE_URL='https://gvsotgzntwfpikigoxdj.supabase.co';
+const SUPABASE_KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+let playerDB=[];
+let playerLoaded=false;
+const fieldNames=['Visioluz','Mozfert','Orangefreight','Lenmed-MSS','F Chiveve','Time2padel'];
+const state=JSON.parse(localStorage.getItem(KEY)||'null')||{level:'Escolher nível',date:'',teams:[],fields:[],scores:{}};
+
+function parseTeams(){
+ const lines=document.getElementById('teams').value.split('\n').map(x=>x.trim()).filter(Boolean);
+ return lines.slice(0,4).map((line,i)=>{
+   let s=line.replace(/^\s*\d+\s*[-.)]\s*/,'').replace(/^🎾\s*/,'');
+   const names=s.split('/').map(x=>x.trim()).filter(Boolean);
+   return {name:s||('Equipa '+(i+1)), players:names};
+ });
+}
+function norm(s){
+ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+function findPlayer(name){
+ const q=norm(name);
+ if(!q) return null;
+ let exact=playerDB.find(p=>norm(p.nome)===q);
+ if(exact) return exact;
+ let cand=playerDB.filter(p=>{const n=norm(p.nome); return n.startsWith(q)||q.startsWith(n);});
+ if(cand.length===1) return cand[0];
+ const qt=q.split(' ');
+ cand=playerDB.filter(p=>{
+   const nt=norm(p.nome).split(' ');
+   return qt.every(t=>nt.some(x=>x.startsWith(t)));
+ });
+ return cand.length===1?cand[0]:null;
+}
+function displayPlayer(name){
+ const p=findPlayer(name);
+ return p ? `${p.nome} (${p.nivel||'Sem nível'})` : `${name} (Sem nível)`;
+}
+function displayTeam(team){
+ if(!team.players || team.players.length<2) return team.name+' (Sem nível)';
+ return team.players.map(displayPlayer).join(' / ');
+}
+async function loadPlayers(){
+ try{
+   const res=await fetch(`${SUPABASE_URL}/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc`,{
+     headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}
+   });
+   if(!res.ok) throw new Error('HTTP '+res.status);
+   playerDB=await res.json();
+   playerLoaded=true;
+   const el=document.getElementById('playerDbStatus');
+   if(el) { el.className='notice ok'; el.textContent=`✓ Base de Dados carregada: ${playerDB.length} jogadores.`; }
+   render();
+ }catch(e){
+   playerLoaded=false;
+   const el=document.getElementById('playerDbStatus');
+   if(el) { el.className='notice err'; el.textContent='⚠️ Não foi possível carregar a Base de Dados de Jogadores.'; }
+   document.getElementById('status').textContent='⚠️ Não foi possível carregar a Base de Dados de Jogadores.';
+ }
+}
+function save(){
+ state.level=document.getElementById('level').value;
+ state.date=document.getElementById('date').value;
+ state.teams=parseTeams();
+ state.fields=[...document.querySelectorAll('#fields input:checked')].map(x=>x.value);
+ localStorage.setItem(KEY,JSON.stringify(state));
+}
+function restore(){
+ document.getElementById('level').value=state.level||'Escolher nível';
+ document.getElementById('date').value=state.date||'';
+ if(state.teams?.length===4) document.getElementById('teams').value=state.teams.map((t,i)=>`${i+1}- 🎾 ${t.name}`).join('\\n');
+ document.querySelectorAll('#fields input').forEach(x=>x.checked=(state.fields||[]).includes(x.value));
+ updateFieldVisual();
+ render();
+}
+document.getElementById('level').onchange=()=>{save();render()};
+document.getElementById('date').onchange=()=>{save();render()};
+document.getElementById('teams').oninput=()=>{save();render()};
+document.querySelectorAll('#fields input').forEach(cb=>cb.onchange=()=>{
+ const checked=[...document.querySelectorAll('#fields input:checked')];
+ if(checked.length>2) cb.checked=false;
+ state.fields=[...document.querySelectorAll('#fields input:checked')].map(x=>x.value);
+ save(); updateFieldVisual(); render();
+});
+function updateFieldVisual(){
+ document.querySelectorAll('.field-option').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked));
+ const f=state.fields||[];
+ const el=document.getElementById('fieldMsg');
+ el.className='notice '+(f.length===2?'ok':'err');
+ el.textContent=f.length===2?`✓ Campos escolhidos: ${f[0]} ← esquerda | ${f[1]} → direita`:`Escolhe 2 campos. Selecionados: ${f.length}/2`;
+}
+const pairs=[[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+
+function initialGames(){
+ const g=[];
+ pairs.forEach((p,i)=>{
+   const r=i<2?1:i<4?2:3;
+   g.push({r,a:p[0],b:p[1],id:`r${r}_${i%2}`});
+ });
+ return g;
+}
+function isComplete(g){
+ const s=state.scores[g.id];
+ if(!s) return false;
+ const a=Number(s.a), b=Number(s.b);
+ return Number.isFinite(a) && Number.isFinite(b) && s.a!=='' && s.b!=='';
+}
+function initialComplete(){
+ return initialGames().every(isComplete);
+}
+function standings(){
+ const t=state.teams?.length===4?state.teams:[0,1,2,3].map(i=>({name:'Equipa '+(i+1)}));
+ const s=t.map((x,i)=>({i,name:displayTeam(x),p:0,v:0,d:0,jp:0,jm:0,gd:0}));
+ initialGames().forEach(g=>{
+   const sc=state.scores[g.id]; if(!isComplete(g)) return;
+   const a=s[g.a],b=s[g.b];
+   a.jp+=sc.a; b.jp+=sc.b; a.jm+=sc.b; b.jm+=sc.a;
+   a.gd+=sc.a-sc.b; b.gd+=sc.b-sc.a;
+   if(sc.a>sc.b){a.p+=3;a.v++;b.p+=1;b.d++;}
+   else if(sc.b>sc.a){b.p+=3;b.v++;a.p+=1;a.d++;}
+   else{a.p+=2;b.p+=2;}
+ });
+ return s.sort((a,b)=>b.p-a.p||b.gd-a.gd||b.jp-a.jp||b.v-a.v||a.i-b.i);
+}
+function round4Games(){
+ if(!initialComplete()) return [];
+ const r=standings();
+ if(r.length!==4 || r.some(x=>x===undefined)) return [];
+ return [
+   {r:4,a:r[0].i,b:r[1].i,id:'r4_final',label:'FINAL'},
+   {r:4,a:r[2].i,b:r[3].i,id:'r4_34',label:'3.º / 4.º LUGAR'}
+ ];
+}
+function allGames(){
+ return [...initialGames(),...round4Games()];
+}
+function scoreBox(g,side){
+ const sc=state.scores[g.id]||{};
+ const v=sc[side];
+ return `<input type="number" min="0" value="${Number.isFinite(v)?v:''}" onchange="setScore('${g.id}','${side}',this.value)">`;
+}
+function matchHTML(g){
+ const t=state.teams?.length===4?state.teams:[0,1,2,3].map(i=>({name:'Equipa '+(i+1)}));
+ return `<div class="match"><small>${g.label||('Ronda '+g.r)}</small><b>${displayTeam(t[g.a])}</b><br>vs<br><b>${displayTeam(t[g.b])}</b><div class="score">${scoreBox(g,'a')} - ${scoreBox(g,'b')}</div></div>`;
+}
+
+function gamesResultsHTML(){
+ const t=state.teams?.length===4?state.teams:[0,1,2,3].map(i=>({name:'Equipa '+(i+1)}));
+ const games=allGames();
+ const f=state.fields||[];
+ if(!games.length) return '<div class="notice">Ainda não existem jogos.</div>';
+
+ return `<div class="games-table">
+   <div class="games-table-title">🎾 TODOS OS JOGOS</div>
+   <div class="games-table-wrap">
+   <table>
+    <thead><tr><th>R.</th><th>Campo</th><th>Equipas</th><th>Resultado</th></tr></thead>
+    <tbody>
+    ${games.map(g=>{
+      const sc=state.scores[g.id];
+      const complete=isComplete(g);
+      const roundLabel=g.r===4?(g.label||'Ronda 4'):'Ronda '+g.r;
+      let result='—';
+      if(complete) result=`${sc.a} - ${sc.b}`;
+      const winner=complete?(Number(sc.a)>Number(sc.b)?g.a:(Number(sc.b)>Number(sc.a)?g.b:null)):null;
+      const teamA=displayTeam(t[g.a]), teamB=displayTeam(t[g.b]);
+      const matchup=`<span class="${winner===g.a?'winner':''}">${teamA}</span><br><span class="${winner===g.b?'winner':''}">${teamB}</span>`;
+      const field=g.r===4
+        ? (g.id==='r4_final'?`${f[0]||'Campo 1'}`:`${f[1]||'Campo 2'}`)
+        : (g.id.endsWith('_0')?`${f[0]||'Campo 1'}`:`${f[1]||'Campo 2'}`);
+      return `<tr class="${g.r===4?'round-final':''}">
+        <td>${roundLabel}</td>
+        <td>${field}</td>
+        <td>${matchup}</td>
+        <td class="${complete?'played':'pending'}">${result}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+   </table>
+   </div>
+ </div>`;
+}
+
+function finalClassification(){
+ const r=standings();
+ const f=round4Games();
+ if(f.length<2) return '';
+ const fin=state.scores.r4_final, p34=state.scores.r4_34;
+ if(!isComplete(f[0]) || !isComplete(f[1])) return '';
+ const champion=fin.a>fin.b?r[0]:r[1];
+ const runner=fin.a>fin.b?r[1]:r[0];
+ const third=p34.a>p34.b?r[2]:r[3];
+ const fourth=p34.a>p34.b?r[3]:r[2];
+ const rows=[
+   {pos:1,team:champion,champ:true},
+   {pos:2,team:runner},
+   {pos:3,team:third},
+   {pos:4,team:fourth}
+ ];
+ return `<div class="final-table">
+   <div class="final-table-title">🏆 CLASSIFICAÇÃO FINAL</div>
+   <div class="final-row header"><div>POS.</div><div>EQUIPA</div><div>PTS</div><div>V</div><div>DIF.</div></div>
+   ${rows.map(x=>`<div class="final-row ${x.champ?'champ':''}">
+      <div class="final-pos">${x.pos}º</div>
+      <div class="final-team">${x.team.name}${x.champ?'<br><span class="champ-badge">🏆 CAMPEÃO</span>':''}</div>
+      <div class="final-stat">${x.team.p}</div>
+      <div class="final-stat">${x.team.v}</div>
+      <div class="final-stat">${x.team.gd>0?'+':''}${x.team.gd}</div>
+   </div>`).join('')}
+ </div>`;
+}
+function render(){
+ state.teams=parseTeams();
+ state.fields=[...document.querySelectorAll('#fields input:checked')].map(x=>x.value);
+ updateFieldVisual();
+
+ const ig=initialGames();
+ const done=ig.filter(isComplete).length;
+ const r4=round4Games();
+ document.querySelectorAll('#courts + .finals-temp').forEach(x=>x.remove());
+ const st=document.getElementById('status');
+ st.textContent=`Resultados: ${done}/6`+(done===6?' — 🏆 RONDA 4 ABERTA: 1.º vs 2.º e 3.º vs 4.º':' — A aguardar os 6 jogos da fase inicial');
+
+ const f=state.fields||[];
+ let left=ig.filter((g,i)=>i%2===0);
+ let right=ig.filter((g,i)=>i%2===1);
+ document.getElementById('courts').innerHTML=`
+ <div class="court"><h3>${f[0]||'Campo da esquerda'}</h3>${left.map(g=>matchHTML(g)).join('')}</div>
+ <div class="court"><h3>${f[1]||'Campo da direita'}</h3>${right.map(g=>matchHTML(g)).join('')}</div>`;
+ if(r4.length){
+   const finals=document.createElement('div');
+   finals.className='card finals-temp';
+   finals.innerHTML=`<h2 style="background:#20cf68;color:#fff;padding:12px;margin:0">🏆 RONDA 4 — FINAIS</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px"><div>${matchHTML(r4[0])}</div><div>${matchHTML(r4[1])}</div></div>`;
+   document.getElementById('courts').insertAdjacentElement('afterend',finals);
+ }
+
+ document.getElementById('gamesResults').innerHTML=gamesResultsHTML();
+
+ document.getElementById('ranking').innerHTML=
+   standings().map((x,i)=>`<div style="padding:10px;border-bottom:1px solid #ddd"><b>${i+1}º</b> ${x.name} — <b>${x.p} pts</b> | V ${x.v} | J+ ${x.jp} | Dif ${x.gd}</div>`).join('')
+   + finalClassification();
+}
+function setScore(id,side,val){
+ const n=val===''?null:Number(val);
+ if(!state.scores[id])state.scores[id]={a:null,b:null};
+ state.scores[id][side]=n;
+ save(); render();
+}
+function resetAll(){if(confirm('Apagar este Mix e começar outro?')){localStorage.removeItem(KEY);location.reload()}}
+function clearScores(){if(confirm('Limpar apenas os resultados?')){state.scores={};save();render()}}
+restore();
+loadPlayers();
+</script>
+</body>
+</html>

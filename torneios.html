@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Torneios</title>
+<style>
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}
+header{background:var(--dark);color:#fff;padding:16px;font-size:23px;font-weight:800}
+.wrap{max-width:1000px;margin:auto;padding:12px}
+.nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.nav a{background:#fff;border:1px solid #ddd;border-radius:8px;padding:9px 12px;text-decoration:none;color:#222;font-weight:800}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.head{background:var(--g);color:#fff;padding:13px 15px;font-size:20px;font-weight:800}
+.body{padding:14px}
+.t{border:1px solid #ddd;border-radius:10px;padding:13px;margin-bottom:10px;background:#fff}
+.t h3{margin:0 0 7px}.meta{color:#666;font-size:13px;line-height:1.6}
+.badge{display:inline-block;background:#20cf68;color:#fff;border-radius:20px;padding:4px 9px;font-size:11px;font-weight:800}
+.muted{color:#777}
+</style>
+</head>
+<body>
+<header>Time2Padel 🏆 — Torneios</header>
+<div class="wrap">
+<nav class="nav">
+<a href="index.html">🏠 Início</a>
+<a href="ranking.html">🏆 Ranking</a>
+<a href="publico.html">📣 Resultados</a>
+</nav>
+<div class="card">
+<div class="head">🏆 Torneios Time2Padel</div>
+<div class="body">
+<div id="status" class="muted">A carregar torneios...</div>
+<div id="list" style="margin-top:10px"></div>
+</div>
+</div>
+</div>
+<script>
+const SUPABASE_URL='https://gvsotgzntwfpikigoxdj.supabase.co';
+const SUPABASE_KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+async function api(path){
+ const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
+ if(!r.ok) throw new Error(await r.text());
+ return r.json();
+}
+function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function pick(o,keys,def=''){for(const k of keys) if(o && o[k]!=null && o[k]!=='') return o[k]; return def;}
+async function load(){
+ try{
+   const data=await api('/rest/v1/torneios?select=*');
+   const list=document.getElementById('list');
+   if(!data.length){document.getElementById('status').textContent='Ainda não existem torneios publicados.';return;}
+   document.getElementById('status').textContent='Torneios publicados';
+   list.innerHTML=data.map(t=>{
+     const nome=pick(t,['nome','titulo','name'],'Torneio Time2Padel');
+     const dataT=pick(t,['data','data_torneio','date'],'');
+     const formato=pick(t,['formato','categoria','tipo'],'');
+     return `<div class="t"><h3>${esc(nome)}</h3>${dataT?`<div class="meta">📅 ${esc(dataT)}</div>`:''}${formato?`<div class="meta">🎾 ${esc(formato)}</div>`:''}<span class="badge">PUBLICADO</span></div>`;
+   }).join('');
+ }catch(e){document.getElementById('status').textContent='Não foi possível carregar os torneios neste momento.';}
+}
+load();
+</script>
+</body>
+</html>

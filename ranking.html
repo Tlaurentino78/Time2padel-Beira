@@ -1,69 +1,47 @@
-<!doctype html>
-<html lang="pt">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Time2Padel — Ranking</title>
+<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time2Padel — Ranking</title>
 <style>
-:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}
-header{background:var(--dark);color:#fff;padding:16px;font-size:23px;font-weight:800}
-.wrap{max-width:900px;margin:auto;padding:12px}
-.nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.nav a{background:#fff;border:1px solid #ddd;border-radius:8px;padding:9px 12px;text-decoration:none;color:#222;font-weight:800}
-.card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
-.head{background:var(--g);color:#fff;padding:13px 15px;font-size:20px;font-weight:800}
-.body{padding:14px}
-table{width:100%;border-collapse:collapse}th,td{padding:11px 8px;border-bottom:1px solid #eee;text-align:center}
-th:first-child,td:first-child{text-align:left}tr:first-child{font-weight:800}
-.muted{color:#777}.champ{font-size:12px;color:#159a52;font-weight:800}
-@media(max-width:600px){th,td{font-size:13px;padding:9px 5px}}
-</style>
-</head>
-<body>
-<header>Time2Padel 🏆 — Ranking</header>
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}.topnav{display:flex;gap:7px;flex-wrap:wrap;padding:10px;max-width:1200px;margin:auto}.topnav a{background:#fff;border:1px solid #ddd;border-radius:8px;padding:9px 11px;text-decoration:none;color:#222;font-weight:800;font-size:13px}.wrap{max-width:1000px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:14px;font-size:22px;font-weight:900}.body{padding:14px}.muted{color:#777;font-size:13px}.filters{display:flex;gap:8px;flex-wrap:wrap}.filters button{padding:9px 13px;border:1px solid #aaa;border-radius:8px;background:#fff;font-weight:800}.filters button.active{background:var(--g);color:#fff;border-color:var(--g)}table{width:100%;border-collapse:collapse}th,td{padding:10px 8px;border-bottom:1px solid #eee;text-align:center}th:first-child,td:first-child{text-align:center}td.name{text-align:left;font-weight:800}.gold{background:#fff8d8}.silver{background:#f3f5f7}.bronze{background:#fff0e4}.loading{padding:20px;text-align:center;font-weight:800}.err{color:#b00020;font-weight:800}.pill{display:inline-block;padding:3px 7px;border-radius:12px;background:#eee;font-size:11px;font-weight:800}.note{margin-top:10px;font-size:12px;color:#777}@media(max-width:650px){th,td{font-size:12px;padding:8px 5px}.hideMob{display:none}.head{font-size:19px}}
+</style></head><body>
+<header>Time2Padel 🏆 — Ranking de Jogadores</header>
+<nav class="topnav"><a href="index.html">🏠 Início</a><a href="jogadores.html">👤 Jogadores</a><a href="mega-mix.html">🏆 Mega Mix</a><a href="mix6.html">🎾 Mix 6</a><a href="mix4.html">🎾 Mix 4</a><a href="ranking.html">🏆 Ranking</a><a href="publico.html">📣 Resultados Públicos</a></nav>
 <div class="wrap">
-<nav class="nav">
-<a href="index.html">🏠 Início</a>
-<a href="torneios.html">🏆 Torneios</a>
-<a href="publico.html">📣 Resultados</a>
-</nav>
-<div class="card">
-<div class="head">🏆 Ranking Time2Padel</div>
-<div class="body">
-<div id="status" class="muted">A carregar ranking...</div>
-<div style="overflow-x:auto;margin-top:10px">
-<table id="tbl" style="display:none">
-<thead><tr><th>Pos.</th><th>Jogador</th><th>Nível</th><th>Pontos</th><th>1.º Lugar</th></tr></thead>
-<tbody id="rows"></tbody>
-</table>
-</div>
-</div></div>
+<div class="card"><div class="head">🏆 Ranking Time2Padel</div><div class="body"><div id="summary" class="muted">A carregar resultados...</div><div class="filters" style="margin-top:10px"><button class="active" data-filter="TODOS">Todos</button><button data-filter="M">Masculino</button><button data-filter="F">Feminino</button></div></div></div>
+<div class="card"><div class="body"><div id="ranking" class="loading">A carregar...</div><div class="note">Pontuação: 1.º = 10 pontos · 2.º = 8 · 3.º = 6 · 4.º = 5 · 5.º = 4 · 6.º = 3 · 7.º = 2 · 8.º = 1. Apenas jogadores com nível na Base de Dados contam. Só Mixes concluídos entram no ranking.</div></div></div>
 </div>
 <script>
-const SUPABASE_URL='https://gvsotgzntwfpikigoxdj.supabase.co';
-const SUPABASE_KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
-async function api(path){
- const r=await fetch(SUPABASE_URL+path,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
- if(!r.ok) throw new Error(await r.text());
- return r.json();
-}
-function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-function points(pos){return [10,8,6,5,4,3,2,1][pos-1]||0;}
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+const $=id=>document.getElementById(id);const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const points={1:10,2:8,3:6,4:5,5:4,6:3,7:2,8:1};let rows=[],filter='TODOS';
+async function api(path){const r=await fetch(SB+path,{headers:{apikey:KEY}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch(e){d=t}if(!r.ok)throw Error(d?.message||String(d)||('HTTP '+r.status));return d}
 async function load(){
  try{
-   const players=await api('/rest/v1/jogadores?select=*');
-   const rows=players.filter(p=>p.nivel && p.nivel!=='Sem nível')
-     .map(p=>({nome:p.nome,nivel:p.nivel,pontos:Number(p.pontos_mix||p.pontos||0),primeiros:Number(p.vitorias_mix_1_lugar||p.primeiros_lugares||0)}))
-     .sort((a,b)=>b.pontos-a.pontos||b.primeiros-a.primeiros||a.nome.localeCompare(b.nome));
-   const body=document.getElementById('rows');
-   if(!rows.length){document.getElementById('status').textContent='Ainda não existem dados de ranking publicados.';return;}
-   body.innerHTML=rows.map((p,i)=>`<tr><td>${i+1}º</td><td style="text-align:left">${esc(p.nome)}</td><td>${esc(p.nivel)}</td><td>${p.pontos}</td><td>${p.primeiros}</td></tr>`).join('');
-   document.getElementById('status').textContent='Ranking público';
-   document.getElementById('tbl').style.display='table';
- }catch(e){document.getElementById('status').textContent='Não foi possível carregar o ranking neste momento.';}
+  const ts=await api('/rest/v1/torneios?select=id,nome,formato,nivel,data_torneio,publicado&publicado=eq.true&order=data_torneio.desc');
+  const out={}; let completed=0;
+  for(const t of ts){
+   const teams=await api('/rest/v1/equipas?select=id,nome,posicao_inicial&torneio_id=eq.'+encodeURIComponent(t.id));
+   const links=await api('/rest/v1/equipa_jogadores?select=equipa_id,jogador_id,nome_registado,ordem&equipa_id=in.('+teams.map(x=>x.id).join(',')+')');
+   const js=await api('/rest/v1/jogos?select=id,equipa_a_id,equipa_b_id,fase,estado,score_a,score_b,ordem&torneio_id=eq.'+encodeURIComponent(t.id));
+   const finalByPos={};
+   const assign=(fase,p1,p2)=>{const m=js.find(x=>x.fase===fase&&x.estado==='finalizado');if(!m)return;const a=Number(m.score_a),b=Number(m.score_b);if(!Number.isFinite(a)||!Number.isFinite(b)||a===b)return;const win=a>b?m.equipa_a_id:m.equipa_b_id,lose=a>b?m.equipa_b_id:m.equipa_a_id;finalByPos[p1]=win;finalByPos[p2]=lose};
+   assign('FINAL',1,2);assign('3º/4º',3,4);assign('5º/6º',5,6);assign('7º/8º',7,8);
+   if(Object.keys(finalByPos).length!==8) continue;
+   completed++;
+   for(let pos=1;pos<=8;pos++){
+    const eid=finalByPos[pos];
+    for(const l of links.filter(x=>x.equipa_id===eid && x.jogador_id)){
+      const key=l.jogador_id;if(!out[key])out[key]={id:key,nome:'',nivel:'Sem nível',pontos:0,p1:0,p2:0,p3:0,mixes:0};
+      // player details are fetched below
+      out[key].pontos+=points[pos];out[key].mixes++;if(pos===1)out[key].p1++;if(pos===2)out[key].p2++;if(pos===3)out[key].p3++;
+    }
+   }
+  }
+  const ids=Object.keys(out);
+  if(ids.length){const ps=await api('/rest/v1/jogadores?select=id,nome,nivel&id=in.('+ids.join(',')+')');for(const p of ps){if(out[p.id]){out[p.id].nome=p.nome;out[p.id].nivel=p.nivel}}}
+  rows=Object.values(out).filter(x=>x.nome && x.nivel && x.nivel!=='Sem nível');sortRows();
+  $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;render();
+ }catch(e){$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
 }
-load();
-</script>
-</body>
-</html>
+function sortRows(){rows.sort((a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||a.nome.localeCompare(b.nome,'pt'))}
+function render(){const rs=rows.filter(r=>filter==='TODOS'||r.nivel.startsWith(filter));if(!rs.length){$('ranking').innerHTML='<div class="loading">Ainda não existem resultados concluídos para o ranking.</div>';return}let h='<table><tr><th>#</th><th class="name">Jogador</th><th>Nível</th><th>Pontos</th><th>1.º</th><th>2.º</th><th>3.º</th><th class="hideMob">Mixes</th></tr>';rs.forEach((r,i)=>{h+=`<tr class="${i===0?'gold':i===1?'silver':i===2?'bronze':''}"><td><b>${i+1}</b></td><td class="name">${esc(r.nome)}</td><td><span class="pill">${esc(r.nivel)}</span></td><td><b>${r.pontos}</b></td><td>${r.p1}</td><td>${r.p2}</td><td>${r.p3}</td><td class="hideMob">${r.mixes}</td></tr>`});h+='</table>';$('ranking').innerHTML=h}
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===b));render()});load();
+</script></body></html>

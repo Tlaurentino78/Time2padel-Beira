@@ -19,26 +19,65 @@ async function load(){
   const out={}; let completed=0;
   for(const t of ts){
    const teams=await api('/rest/v1/equipas?select=id,nome,posicao_inicial&torneio_id=eq.'+encodeURIComponent(t.id));
-   const links=await api('/rest/v1/equipa_jogadores?select=equipa_id,jogador_id,nome_registado,ordem&equipa_id=in.('+teams.map(x=>x.id).join(',')+')');
+   if(!teams.length) continue;
+   const ids=teams.map(x=>x.id).join(',');
+   const links=await api('/rest/v1/equipa_jogadores?select=equipa_id,jogador_id,nome_registado,ordem&equipa_id=in.('+ids+')');
    const js=await api('/rest/v1/jogos?select=id,equipa_a_id,equipa_b_id,fase,estado,score_a,score_b,ordem&torneio_id=eq.'+encodeURIComponent(t.id));
    const finalByPos={};
-   const assign=(fase,p1,p2)=>{const m=js.find(x=>x.fase===fase&&x.estado==='finalizado');if(!m)return;const a=Number(m.score_a),b=Number(m.score_b);if(!Number.isFinite(a)||!Number.isFinite(b)||a===b)return;const win=a>b?m.equipa_a_id:m.equipa_b_id,lose=a>b?m.equipa_b_id:m.equipa_a_id;finalByPos[p1]=win;finalByPos[p2]=lose};
-   assign('FINAL',1,2);assign('3º/4º',3,4);assign('5º/6º',5,6);assign('7º/8º',7,8);
-   if(Object.keys(finalByPos).length!==8) continue;
+   const setMatch=(m,posA,posB)=>{
+    if(!m||m.estado!=='finalizado'||m.score_a==null||m.score_b==null||Number(m.score_a)===Number(m.score_b)) return false;
+    const win=Number(m.score_a)>Number(m.score_b)?m.equipa_a_id:m.equipa_b_id;
+    const lose=win===m.equipa_a_id?m.equipa_b_id:m.equipa_a_id;
+    finalByPos[posA]=win; finalByPos[posB]=lose; return true;
+   };
+   const fmt=String(t.formato||'').toLowerCase();
+   if(fmt.includes('mega')){
+    setMatch(js.find(x=>x.fase==='FINAL'),1,2);
+    setMatch(js.find(x=>x.fase==='3º/4º'),3,4);
+    setMatch(js.find(x=>x.fase==='5º/6º'),5,6);
+    setMatch(js.find(x=>x.fase==='7º/8º'),7,8);
+    if(Object.keys(finalByPos).length!==8) continue;
+   }else if(fmt.includes('mix 4') || fmt==='mix4' || teams.length===4){
+    setMatch(js.find(x=>x.fase==='FINAL'),1,2);
+    setMatch(js.find(x=>x.fase==='3º/4º'),3,4);
+    if(Object.keys(finalByPos).length!==4) continue;
+   }else if(fmt.includes('mix 6') || fmt==='mix6' || teams.length===6){
+    // Compatibilidade caso exista no Supabase: classificação pelos 15 jogos round-robin.
+    const gs=teams.map((tm,i)=>({id:tm.id,i,w:0,gf:0,ga:0,diff:0}));
+    let allDone=true;
+    for(const m of js){
+      if(m.estado!=='finalizado'||m.score_a==null||m.score_b==null){allDone=false;break;}
+      const a=gs.find(x=>x.id===m.equipa_a_id),b=gs.find(x=>x.id===m.equipa_b_id); if(!a||!b) continue;
+      const sa=Number(m.score_a),sb=Number(m.score_b); a.gf+=sa;a.ga+=sb;b.gf+=sb;b.ga+=sa;a.diff+=sa-sb;b.diff+=sb-sa;
+      if(sa>sb)a.w++; else if(sb>sa)b.w++;
+    }
+    if(!allDone) continue;
+    gs.sort((a,b)=>b.w-a.w||b.diff-a.diff||b.gf-a.gf||a.i-b.i);
+    gs.forEach((x,i)=>finalByPos[i+1]=x.id);
+   }else{
+    continue;
+   }
    completed++;
-   for(let pos=1;pos<=8;pos++){
+   const ptsForPos=teams.length===4?{1:10,2:8,3:6,4:5}:points;
+   for(let pos=1;pos<=Object.keys(finalByPos).length;pos++){
     const eid=finalByPos[pos];
     for(const l of links.filter(x=>x.equipa_id===eid && x.jogador_id)){
-      const key=l.jogador_id;if(!out[key])out[key]={id:key,nome:'',nivel:'Sem nível',pontos:0,p1:0,p2:0,p3:0,mixes:0};
-      // player details are fetched below
-      out[key].pontos+=points[pos];out[key].mixes++;if(pos===1)out[key].p1++;if(pos===2)out[key].p2++;if(pos===3)out[key].p3++;
+      const key=l.jogador_id;
+      if(!out[key])out[key]={id:key,nome:'',nivel:'Sem nível',pontos:0,p1:0,p2:0,p3:0,mixes:0};
+      out[key].pontos+=ptsForPos[pos]||0;
+      out[key].mixes++;
+      if(pos===1)out[key].p1++;
+      if(pos===2)out[key].p2++;
+      if(pos===3)out[key].p3++;
     }
    }
   }
   const ids=Object.keys(out);
   if(ids.length){const ps=await api('/rest/v1/jogadores?select=id,nome,nivel&id=in.('+ids.join(',')+')');for(const p of ps){if(out[p.id]){out[p.id].nome=p.nome;out[p.id].nivel=p.nivel}}}
-  rows=Object.values(out).filter(x=>x.nome && x.nivel && x.nivel!=='Sem nível');sortRows();
-  $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;render();
+  rows=Object.values(out).filter(x=>x.nome && x.nivel && x.nivel!=='Sem nível');
+  sortRows();
+  $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;
+  render();
  }catch(e){$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
 }
 function sortRows(){rows.sort((a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||a.nome.localeCompare(b.nome,'pt'))}

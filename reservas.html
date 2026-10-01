@@ -249,10 +249,42 @@ async function saveDemo(){
  }
 }
 
+function reservaInicioLocal(data,hora){
+  const [y,m,d]=String(data).split('-').map(Number);
+  const [hh,mm]=String(hora).slice(0,5).split(':').map(Number);
+  return new Date(y,m-1,d,hh,mm,0,0);
+}
+function podeGerirReserva(ev,acao){
+  if(currentRole==='admin') return true;
+  const inicio=reservaInicioLocal(ev.data_reserva,ev.hora_inicio);
+  const horas=(inicio.getTime()-Date.now())/3600000;
+  return horas >= 24;
+}
+async function editarReserva(ev){
+  if(currentRole!=='admin' && !podeGerirReserva(ev,'editar')){
+    alert('⏳ Esta reserva está a menos de 24 horas. Apenas o Administrador pode alterar a reserva.');
+    return;
+  }
+  alert(currentRole==='admin' ? 'A edição de reservas pelo Administrador será feita nesta janela.' : 'A edição ficará disponível fora das 24 horas.');
+}
+async function cancelarReserva(ev){
+  if(currentRole!=='admin' && !podeGerirReserva(ev,'cancelar')){
+    alert('⏳ Não podes cancelar esta reserva nas últimas 24 horas. Apenas o Administrador pode cancelar.');
+    return;
+  }
+  if(!confirm('Cancelar esta reserva?')) return;
+  const r=await fetch(`${SB}/rest/v1/rpc/cancelar_reserva`,{
+    method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},
+    body:JSON.stringify({p_reserva_id:ev.id})
+  });
+  if(!r.ok){alert('Não foi possível cancelar a reserva.\n\n'+await r.text());return;}
+  await renderReal();
+}
+
 async function renderReal(){
  render();
  try{
-   const selectFields=currentRole==="admin"?"data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado":"data_reserva,hora_inicio,duracao_min,campo,tipo";
+   const selectFields=currentRole==="admin"?"id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado,utilizador_id":"id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,utilizador_id";
    const q=`${SB}/rest/v1/reservas?select=${selectFields}&data_reserva=eq.${encodeURIComponent(date.value)}`;
    const r=await fetch(q,{headers:authHeaders()});
    if(!r.ok)return;
@@ -264,20 +296,29 @@ async function renderReal(){
      const start=toMin(ev.hora_inicio), ti=times.findIndex(x=>toMin(x)===start); if(ti<0)return;
      const n=Math.max(1,Number(ev.duracao_min)/30);
      const rowsByTime=document.querySelectorAll("#body tr");
+     const canManage=podeGerirReserva(ev,'cancelar');
      for(let i=ti;i<Math.min(ti+n,rowsByTime.length);i++){
        const cells=rowsByTime[i].querySelectorAll(".slot");
        const cell=cells[ci];
-       if(cell){cell.className="slot "+(typeClass[ev.tipo]||"res");
-         if(currentRole==="admin"){
-           const nome=ev.jogador_nome||"";
-           cell.textContent=nome || "";
-           cell.title=nome || "";
-         }else{cell.textContent=ev.tipo; cell.title=ev.tipo;}
+       if(cell){
+         cell.className="slot "+(typeClass[ev.tipo]||"res");
+         const nome=ev.jogador_nome||"";
+         cell.textContent=currentRole==="admin" ? (nome||ev.tipo) : ev.tipo;
+         cell.title=currentRole==="admin" ? (nome||ev.tipo) : ev.tipo;
+         cell.onclick=()=>{
+           const pode=podeGerirReserva(ev,'cancelar');
+           let acao='';
+           if(currentRole==='admin') acao='Administrador: pode alterar ou cancelar a qualquer momento.';
+           else if(pode) acao='Podes cancelar/alterar esta reserva porque faltam mais de 24 horas.';
+           else acao='Nas últimas 24 horas, apenas o Administrador pode alterar ou cancelar.';
+           if(confirm((currentRole==='admin'?'Reserva de ':'Reserva de ')+(nome||'jogador')+'\n\n'+acao+'\n\nCancelar esta reserva?')) cancelarReserva(ev);
+         };
        }
      }
    });
  }catch(e){}
 }
+
 date.addEventListener("change",renderReal);
 render();
 restoreSession();

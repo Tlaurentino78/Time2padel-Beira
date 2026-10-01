@@ -6,7 +6,7 @@
 
 <div class="wrap">
   <div class="hero"><h1>🏆 Ranking Time2Padel Beira</h1><p>Ranking dos jogadores do clube</p></div>
-  <div class="card"><div class="head">🏆 Ranking dos Jogadores</div><div class="body"><div id="summary" class="muted">A carregar ranking...</div><div id="ranking" class="loading">A carregar...</div><div class="note">Pontuação por classificação: 1.º = 10 · 2.º = 8 · 3.º = 6 · 4.º = 5 · 5.º = 4 · 6.º = 3 · 7.º = 2 · 8.º = 1. Só entram Mixes concluídos e jogadores com nível atribuído na Base de Dados.</div></div></div>
+  <div class="card"><div class="head">🏆 Ranking dos Jogadores</div><div class="body"><div id="summary" class="muted">A carregar ranking...</div><div id="ranking" class="loading">A carregar...</div><div class="note">Pontuação por classificação: 1.º = 10 · 2.º = 8 · 3.º = 6 · 4.º = 5 · 5.º = 4 · 6.º = 3 · 7.º = 2 · 8.º = 1. A coluna “Vitórias” mostra apenas o número de Mixes ganhos (1.º lugar). Só entram Mixes concluídos e jogadores com nível atribuído na Base de Dados.</div></div></div>
 </div>
 <script>
 const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
@@ -40,7 +40,7 @@ async function load(){
   const rows=Object.values(out).sort((a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||a.nome.localeCompare(b.nome,'pt'));
   $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;
   let html='<div class="levels">';
-  for(const g of groups){const rs=rows.filter(r=>r.nivel===g[0]||r.nivel===g[1]);html+=`<section class="level"><h3>${g[2]}<span>${rs.length} jogador(es)</span></h3>`;if(!rs.length){html+='<div class="empty">Ainda sem resultados neste nível.</div></section>';continue}html+='<table><thead><tr><th>#</th><th class="name">Jogador</th><th>Pontos</th><th>1.º</th><th>2.º</th><th>3.º</th><th class="hideMob">Mixes</th></tr></thead><tbody>';rs.forEach((r,i)=>{html+=`<tr class="${i===0?'gold':i===1?'silver':i===2?'bronze':''}"><td><b>${i+1}</b></td><td class="name">${esc(r.nome)}</td><td><b>${r.pontos}</b></td><td>${r.p1}</td><td>${r.p2}</td><td>${r.p3}</td><td class="hideMob">${r.mixes}</td></tr>`});html+='</tbody></table></section>'}
+  for(const g of groups){const rs=rows.filter(r=>r.nivel===g[0]||r.nivel===g[1]);html+=`<section class="level"><h3>${g[2]}<span>${rs.length} jogador(es)</span></h3>`;if(!rs.length){html+='<div class="empty">Ainda sem resultados neste nível.</div></section>';continue}html+='<table><thead><tr><th>#</th><th class="name">Jogador</th><th>Pontos</th><th>Vitórias</th><th>2.º</th><th>3.º</th></tr></thead><tbody>';rs.forEach((r,i)=>{html+=`<tr class="${i===0?'gold':i===1?'silver':i===2?'bronze':''}"><td><b>${i+1}</b></td><td class="name">${esc(r.nome)}</td><td><b>${r.pontos}</b></td><td>${r.p1}</td><td>${r.p2}</td><td>${r.p3}</td></tr>`});html+='</tbody></table></section>'}
   html+='</div>';$('ranking').innerHTML=html;
  }catch(e){$('summary').textContent='';$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
 }

@@ -33,10 +33,10 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}
 .teams{grid-template-columns:1fr 1fr}
 .board{display:grid;grid-template-columns:repeat(4,230px);overflow-x:auto}
 .court{min-width:230px}
-.match{height:220px;min-height:220px;padding:10px 6px}
-.names{width:100%;min-height:64px;display:flex;flex-direction:column;justify-content:center;word-break:break-word}
-.scores{width:100%;height:48px;flex:0 0 48px;margin-top:8px}
-.score{width:58px;height:42px;flex:0 0 58px}
+.match{height:178px;min-height:178px;padding:7px 5px}
+.names{width:100%;min-height:50px;display:flex;flex-direction:column;justify-content:center;word-break:break-word;font-size:14px;line-height:1.15}
+.scores{width:100%;height:42px;flex:0 0 42px;margin-top:5px}
+.score{width:48px;height:38px;flex:0 0 48px;font-size:18px}
 .groups{grid-template-columns:1fr}
 }
 
@@ -79,7 +79,7 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}
 </div>
 
 <div id="games">
-<div class="card" style="margin-bottom:10px"><div class="body" id="progress" style="font-weight:700"></div></div>
+<div class="card" style="margin-bottom:10px"><div class="body"><div id="progress" style="font-weight:700"></div><div class="note" style="margin-top:8px">⚠️ As meias-finais só ficam disponíveis depois dos <b>12 jogos da fase de grupos</b>. Se corrigires um resultado que altera um vencedor, as fases seguintes dependentes são limpas automaticamente.</div></div></div>
 <div class="board" id="board"></div>
 <div class="groups">
 <div class="group"><h3>Grupo A</h3><table><thead><tr><th>Equipa</th><th>V</th><th>D</th><th>J+</th><th>J−</th></tr></thead><tbody id="ga"></tbody></table></div>
@@ -179,16 +179,30 @@ function formatPlayer(name){
 function formatTeam(name){
  return splitPlayers(name).map(formatPlayer).join(" / ");
 }
+function groupsComplete(){
+ return [...Array(12)].every((_,i)=>!!sc("m"+(i+1)));
+}
+function semisComplete(){ return !!sc("m13") && !!sc("m14"); }
+function playoffsComplete(){ return !!sc("m16") && !!sc("m17"); }
+function knockoutReadyFor(id){
+ if(["m13","m14","m16","m17"].includes(id)) return groupsComplete();
+ if(["m15","m18"].includes(id)) return semisComplete();
+ if(["m19","m20"].includes(id)) return playoffsComplete();
+ return true;
+}
 function team(code){
  code=String(code||"");
  if(/^A[1-4]$/.test(code)) return teams[Number(code[1])-1] || "A definir";
  if(/^B[1-4]$/.test(code)) return teams[4+Number(code[1])-1] || "A definir";
  if(/^[1-4][AB]$/.test(code)){
+  if(!groupsComplete()) return "A aguardar";
   const r=group(code[1]);
   return r[Number(code[0])-1]?.name || "A aguardar";
  }
  if(/^[WL]\d+$/.test(code)){
-  const m=byId("m"+code.slice(1));
+  const matchId="m"+code.slice(1);
+  if(!knockoutReadyFor(matchId)) return "A aguardar";
+  const m=byId(matchId);
   if(!m)return "A aguardar";
   const w=win(m.id);
   if(!w)return "A aguardar";
@@ -198,6 +212,7 @@ function team(code){
 }
 
 function editReady(m){
+ if(!knockoutReadyFor(m.id)) return false;
  let a=team(m.a),b=team(m.b);
  return !["A aguardar","A definir"].includes(a)&&!["A aguardar","A definir"].includes(b);
 }
@@ -230,16 +245,11 @@ function renderBoard(){
 }
 
 function downstreamIds(id){
- const deps={
-  m1:["m13","m14","m16","m17","m18","m19","m20"],m2:["m13","m14","m16","m17","m18","m19","m20"],
-  m3:["m13","m14","m16","m17","m18","m19","m20"],m4:["m13","m14","m16","m17","m18","m19","m20"],
-  m5:["m13","m14","m16","m17","m18","m19","m20"],m6:["m13","m14","m16","m17","m18","m19","m20"],
-  m7:["m13","m14","m16","m17","m18","m19","m20"],m8:["m13","m14","m16","m17","m18","m19","m20"],
-  m9:["m13","m14","m16","m17","m18","m19","m20"],m10:["m13","m14","m16","m17","m18","m19","m20"],
-  m11:["m13","m14","m16","m17","m18","m19","m20"],m12:["m13","m14","m16","m17","m18","m19","m20"],
-  m13:["m15","m18"],m14:["m15","m18"],m15:[],m16:["m19","m20"],m17:["m19","m20"],m18:[],m19:[],m20:[]
- };
- return deps[id]||[];
+ const groupGames=[...Array(12)].map((_,i)=>"m"+(i+1));
+ if(groupGames.includes(id)) return ["m13","m14","m15","m16","m17","m18","m19","m20"];
+ if(id==="m13"||id==="m14") return ["m15","m18"];
+ if(id==="m16"||id==="m17") return ["m19","m20"];
+ return [];
 }
 function invalidateDownstream(id){
  const seen=new Set(),todo=[...downstreamIds(id)];
@@ -276,7 +286,8 @@ function pair(id){
  return {win:team(m[w]),lose:team(m[w==="a"?"b":"a"])};
 }
 function finalRanking(){
- let out=new Array(8).fill("A aguardar"),f=pair("m18"),p34=pair("m15"),p56=pair("m19"),p78=pair("m20");
+ let out=new Array(8).fill("A aguardar");
+ let f=pair("m18"),p34=pair("m15"),p56=pair("m19"),p78=pair("m20");
  if(f){out[0]=f.win;out[1]=f.lose}
  if(p34){out[2]=p34.win;out[3]=p34.lose}
  if(p56){out[4]=p56.win;out[5]=p56.lose}
@@ -292,12 +303,11 @@ function renderProgress(){
  const sf=[sc("m13"),sc("m14")].filter(Boolean).length;
  const later=[sc("m15"),sc("m16"),sc("m17"),sc("m18"),sc("m19"),sc("m20")].filter(Boolean).length;
  let text="Fase de grupos: "+doneGroups+"/12";
- if(doneGroups===12) text+="  •  Meias-finais prontas";
- if(sf===2) text+="  •  Última fase pronta (final + classificação)";
+ if(doneGroups===12) text+="  •  Meias-finais desbloqueadas";
+ if(sf===2) text+="  •  3.º/4.º e Final desbloqueados";
  if(later===6) text+="  •  Torneio terminado";
  document.getElementById("progress").textContent=text;
 }
-
 function renderMatchPreview(){
  const box=document.getElementById("matchPreview");
  const list=parse(document.getElementById("wa").value);

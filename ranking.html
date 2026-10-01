@@ -1,50 +1,169 @@
-<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time2Padel — Ranking dos Jogadores</title>
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Ranking dos Jogadores</title>
 <style>
-:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}.topnav{display:flex;gap:7px;flex-wrap:wrap;padding:10px;max-width:1200px;margin:auto}.topnav a{background:#fff;border:1px solid #ddd;border-radius:8px;padding:9px 11px;text-decoration:none;color:#222;font-weight:800;font-size:13px}.wrap{max-width:1100px;margin:auto;padding:10px}.hero{background:var(--dark);color:#fff;border-radius:12px;padding:18px;margin-bottom:12px}.hero h1{margin:0 0 6px}.hero p{margin:0;color:#ddd}.card{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:14px;font-size:21px;font-weight:900}.body{padding:14px}.muted{color:#777;font-size:13px}.loading{padding:20px;text-align:center;font-weight:800}.err{color:#b00020;font-weight:800}.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.level{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.level h3{margin:0;background:var(--dark);color:#fff;padding:10px 12px;font-size:18px}.level h3 span{float:right;font-size:12px;font-weight:400;color:#ddd;margin-top:3px}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;border-bottom:1px solid #eee;text-align:center;font-size:13px}th:first-child,td:first-child{width:42px}td.name{text-align:left;font-weight:800}.gold{background:#fff8d8}.silver{background:#f3f5f7}.bronze{background:#fff0e4}.pill{display:inline-block;padding:3px 7px;border-radius:12px;background:#eee;font-size:11px;font-weight:800}.note{font-size:12px;color:#777;margin-top:10px}.empty{padding:14px;color:#888;font-size:13px;text-align:center}@media(max-width:700px){.levels{grid-template-columns:1fr}th,td{font-size:12px;padding:8px 5px}.hideMob{display:none}.hero h1{font-size:23px}}
-</style></head><body>
-<header>Time2Padel 🏆 — Ranking dos Jogadores</header><div style="max-width:1100px;margin:auto;padding:10px"><a href="index.html" style="display:inline-block;background:#fff;border:1px solid #ddd;border-radius:9px;padding:10px 14px;text-decoration:none;color:#222;font-weight:800">🏠 Voltar à Página Inicial</a></div>
-
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}
+header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}
+.wrap{max-width:1100px;margin:auto;padding:10px}.hero{background:var(--dark);color:#fff;border-radius:12px;padding:18px;margin-bottom:12px}.hero h1{margin:0 0 6px;font-size:25px}.hero p{margin:0;color:#ddd}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:14px;font-size:21px;font-weight:900}.body{padding:14px}
+.summary{color:#666;font-size:13px}.loading{padding:22px;text-align:center;font-weight:800}.err{color:#b00020;font-weight:800}.levels{display:grid;grid-template-columns:1fr 1fr;gap:12px}.level{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.level h3{margin:0;background:var(--dark);color:#fff;padding:11px 12px;font-size:18px}.level h3 span{float:right;font-size:12px;font-weight:400;color:#ddd;margin-top:3px}
+table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;border-bottom:1px solid #eee;text-align:center;font-size:13px}th:first-child,td:first-child{width:42px}td.name{text-align:left;font-weight:800}.gold{background:#fff8d8}.silver{background:#f3f5f7}.bronze{background:#fff0e4}.empty{padding:15px;color:#888;font-size:13px;text-align:center}.note{font-size:12px;color:#777;margin-top:10px;line-height:1.45}.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.top a{background:#fff;border:1px solid #ddd;border-radius:9px;padding:10px 14px;text-decoration:none;color:#222;font-weight:800}
+@media(max-width:700px){.levels{grid-template-columns:1fr}th,td{font-size:12px;padding:8px 5px}.hero h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header>Time2Padel 🏆 — Ranking dos Jogadores</header>
 <div class="wrap">
+  <div class="top"><a href="index.html">🏠 Voltar à Página Inicial</a></div>
   <div class="hero"><h1>🏆 Ranking Time2Padel Beira</h1><p>Ranking dos jogadores do clube</p></div>
-  <div class="card"><div class="head">🏆 Ranking dos Jogadores</div><div class="body"><div id="summary" class="muted">A carregar ranking...</div><div id="ranking" class="loading">A carregar...</div><div class="note">Pontuação por classificação: 1.º = 10 · 2.º = 8 · 3.º = 6 · 4.º = 5 · 5.º = 4 · 6.º = 3 · 7.º = 2 · 8.º = 1. A coluna “Vitórias” mostra apenas o número de Mixes ganhos (1.º lugar). Só entram Mixes concluídos e jogadores com nível atribuído na Base de Dados.</div></div></div>
+  <div class="card">
+    <div class="head">🏆 Ranking dos Jogadores</div>
+    <div class="body">
+      <div id="summary" class="summary">A carregar ranking...</div>
+      <div id="ranking" class="loading">A carregar...</div>
+      <div class="note">
+        Pontuação por classificação: 1.º = 10 · 2.º = 8 · 3.º = 6 · 4.º = 5 · 5.º = 4 · 6.º = 3 · 7.º = 2 · 8.º = 1.<br>
+        <b>Importante:</b> o Ranking usa exclusivamente a base de dados <b>jogadores</b> (competições/Mixes). A base <b>jogadores_reservas</b> não é usada. Só contam Mixes concluídos/publicados e jogadores com nível M3, M4, M5, F3, F4 ou F5.
+      </div>
+    </div>
+  </div>
 </div>
 <script>
-const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
-const $=id=>document.getElementById(id);const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co';
+const KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
 const points={1:10,2:8,3:6,4:5,5:4,6:3,7:2,8:1};
-const groups=[['M5','M5'],['F5','F5'],['M4','M4'],['F4','F4'],['M3','M3'],['F3','F3']];
-async function api(path){const r=await fetch(SB+path,{headers:{apikey:KEY}});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch(e){d=t}if(!r.ok)throw Error(d?.message||String(d)||('HTTP '+r.status));return d}
-async function load(){
- try{
-  const ts=await api('/rest/v1/torneios?select=id,nome,formato,nivel,data_torneio,publicado&publicado=eq.true&order=data_torneio.desc');
-  const allPlayers=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
-  const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  const byName=new Map(allPlayers.map(p=>[norm(p.nome),p]));
-  const levelOf=p=>String(p?.nivel||'').trim().toUpperCase().replace(/\\s+/g,'');
-  const validLevels=new Set(['M3','F3','M4','F4','M5','F5']);
-  const out={};let completed=0;
-  for(const t of ts){
-   const teams=await api('/rest/v1/equipas?select=id,nome,posicao_inicial&torneio_id=eq.'+encodeURIComponent(t.id));if(!teams.length)continue;
-   const ids=teams.map(x=>x.id).join(',');
-   const links=await api('/rest/v1/equipa_jogadores?select=equipa_id,jogador_id,nome_registado,ordem&equipa_id=in.('+ids+')');
-   const js=await api('/rest/v1/jogos?select=id,equipa_a_id,equipa_b_id,fase,estado,score_a,score_b,ordem&torneio_id=eq.'+encodeURIComponent(t.id));
-   const pos={};
-   function setMatch(m,a,b){if(!m||m.estado!=='finalizado'||m.score_a==null||m.score_b==null||Number(m.score_a)===Number(m.score_b))return false;const win=Number(m.score_a)>Number(m.score_b)?m.equipa_a_id:m.equipa_b_id;const lose=win===m.equipa_a_id?m.equipa_b_id:m.equipa_a_id;pos[a]=win;pos[b]=lose;return true}
-   const fmt=String(t.formato||'').toLowerCase();
-   if(fmt.includes('mega')){setMatch(js.find(x=>x.fase==='FINAL'),1,2);setMatch(js.find(x=>x.fase==='3º/4º'),3,4);setMatch(js.find(x=>x.fase==='5º/6º'),5,6);setMatch(js.find(x=>x.fase==='7º/8º'),7,8);if(Object.keys(pos).length!==8)continue}
-   else if(fmt.includes('mix 4')||fmt==='mix4'||teams.length===4){setMatch(js.find(x=>x.fase==='FINAL'),1,2);setMatch(js.find(x=>x.fase==='3º/4º'),3,4);if(Object.keys(pos).length!==4)continue}
-   else if(fmt.includes('mix 6')||fmt==='mix6'||teams.length===6){const gs=teams.map((tm,i)=>({id:tm.id,i,w:0,gf:0,ga:0,diff:0}));let done=true;for(const m of js){if(m.estado!=='finalizado'||m.score_a==null||m.score_b==null){done=false;break}const a=gs.find(x=>x.id===m.equipa_a_id),b=gs.find(x=>x.id===m.equipa_b_id);if(!a||!b)continue;const sa=Number(m.score_a),sb=Number(m.score_b);a.gf+=sa;a.ga+=sb;b.gf+=sb;b.ga+=sa;a.diff+=sa-sb;b.diff+=sb-sa;if(sa>sb)a.w++;else if(sb>sa)b.w++}if(!done)continue;gs.sort((a,b)=>b.w-a.w||b.diff-a.diff||b.gf-a.gf||a.i-b.i);gs.forEach((x,i)=>pos[i+1]=x.id)}
-   else continue;
-   completed++;
-   const pts=teams.length===4?{1:10,2:8,3:6,4:5}:points;
-   for(let p=1;p<=Object.keys(pos).length;p++){const eid=pos[p];for(const l of links.filter(x=>x.equipa_id===eid)){const player=l.jogador_id?allPlayers.find(x=>String(x.id)===String(l.jogador_id)):byName.get(norm(l.nome_registado));const nivel=levelOf(player);if(!player||!player.id||!validLevels.has(nivel))continue;const id=player.id;if(!out[id])out[id]={id,nome:player.nome,nivel,pontos:0,p1:0,p2:0,p3:0,mixes:0};out[id].pontos+=Number(pts[p]||0);out[id].mixes++;if(p===1)out[id].p1++;if(p===2)out[id].p2++;if(p===3)out[id].p3++}}
+const levels=[
+  {id:'M5',title:'M5'},
+  {id:'F5',title:'F5'},
+  {id:'M4',title:'M4'},
+  {id:'F4',title:'F4'},
+  {id:'M3',title:'M3'},
+  {id:'F3',title:'F3'}
+];
+async function api(path){
+  const r=await fetch(SB+path,{headers:{apikey:KEY}});
+  const t=await r.text(); let d;
+  try{d=t?JSON.parse(t):null}catch(e){d=t}
+  if(!r.ok)throw Error(d?.message||String(d)||('HTTP '+r.status));
+  return d;
+}
+function setPosition(pos,eid){
+  if(!eid||!pos)return;
+}
+function matchWinner(m){
+  if(!m||m.estado!=='finalizado'||m.score_a==null||m.score_b==null)return null;
+  const a=Number(m.score_a),b=Number(m.score_b);
+  if(!Number.isFinite(a)||!Number.isFinite(b)||a===b)return null;
+  return a>b?m.equipa_a_id:m.equipa_b_id;
+}
+function matchLoser(m){
+  const w=matchWinner(m); if(!w)return null;
+  return w===m.equipa_a_id?m.equipa_b_id:m.equipa_a_id;
+}
+function findPhase(js,names){
+  return js.find(m=>names.includes(String(m.fase||'').trim().toUpperCase()));
+}
+function getPlacements(t,teams,js){
+  const fmt=String(t.formato||'').toLowerCase();
+  const pos={};
+  if(fmt.includes('mega')){
+    const pairs=[
+      [['FINAL'],1,2],
+      [['3º/4º','3°/4°','3/4','3.º/4.º'],3,4],
+      [['5º/6º','5°/6°','5/6','5.º/6.º'],5,6],
+      [['7º/8º','7°/8°','7/8','7.º/8.º'],7,8]
+    ];
+    for(const [names,a,b] of pairs){const m=js.find(x=>names.includes(String(x.fase||'').trim().toUpperCase()));if(!m||!matchWinner(m))return null;pos[a]=matchWinner(m);pos[b]=matchLoser(m)}
+    return Object.keys(pos).length===8?pos:null;
   }
-  const rows=Object.values(out).sort((a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||a.nome.localeCompare(b.nome,'pt'));
-  $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;
-  let html='<div class="levels">';
-  for(const g of groups){const rs=rows.filter(r=>r.nivel===g[0]);html+=`<section class="level"><h3>${g[1]}<span>${rs.length} jogador(es)</span></h3>`;if(!rs.length){html+='<div class="empty">Ainda sem resultados neste nível.</div></section>';continue}html+='<table><thead><tr><th>#</th><th class="name">Jogador</th><th>Pontos</th><th>Vitórias</th><th>2.º</th><th>3.º</th></tr></thead><tbody>';rs.forEach((r,i)=>{html+=`<tr class="${i===0?'gold':i===1?'silver':i===2?'bronze':''}"><td><b>${i+1}</b></td><td class="name">${esc(r.nome)}</td><td><b>${r.pontos}</b></td><td>${r.p1}</td><td>${r.p2}</td><td>${r.p3}</td></tr>`});html+='</tbody></table></section>'}
-  html+='</div>';$('ranking').innerHTML=html;
- }catch(e){$('summary').textContent='';$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
+  if(fmt.includes('mix 4')||fmt==='mix4'||teams.length===4){
+    const final=findPhase(js,['FINAL']);
+    const third=js.find(m=>['3º/4º','3°/4°','3/4','3.º/4.º'].includes(String(m.fase||'').trim().toUpperCase()));
+    if(!final||!third||!matchWinner(final)||!matchWinner(third))return null;
+    pos[1]=matchWinner(final);pos[2]=matchLoser(final);pos[3]=matchWinner(third);pos[4]=matchLoser(third);
+    return pos;
+  }
+  if(fmt.includes('mix 6')||fmt==='mix6'||teams.length===6){
+    const table=teams.map((tm,i)=>({id:tm.id,i,w:0,gf:0,ga:0,diff:0,played:0}));
+    const group=js.filter(m=>String(m.fase||'').trim().toLowerCase()==='grupo');
+    if(group.length<15)return null;
+    for(const m of group){
+      if(m.estado!=='finalizado'||m.score_a==null||m.score_b==null)return null;
+      const a=table.find(x=>x.id===m.equipa_a_id),b=table.find(x=>x.id===m.equipa_b_id); if(!a||!b)continue;
+      const sa=Number(m.score_a),sb=Number(m.score_b); if(!Number.isFinite(sa)||!Number.isFinite(sb))return null;
+      a.gf+=sa;a.ga+=sb;a.diff+=sa-sb;a.played++; b.gf+=sb;b.ga+=sa;b.diff+=sb-sa;b.played++;
+      if(sa>sb)a.w++;else if(sb>sa)b.w++;
+    }
+    table.sort((a,b)=>b.w-a.w||b.diff-a.diff||b.gf-a.gf||a.i-b.i);
+    table.forEach((x,i)=>pos[i+1]=x.id);
+    return pos;
+  }
+  return null;
+}
+async function load(){
+  try{
+    // ESTA é a única base de jogadores usada pelo Ranking.
+    const players=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
+    const allowed=new Set(['M3','M4','M5','F3','F4','F5']);
+    const playerById=new Map(players.map(p=>[String(p.id),p]));
+    const playerByName=new Map();
+    for(const p of players){
+      const k=norm(p.nome); if(!playerByName.has(k))playerByName.set(k,[]); playerByName.get(k).push(p);
+    }
+    const tournaments=await api('/rest/v1/torneios?select=id,nome,formato,nivel,data_torneio,publicado&publicado=eq.true&order=data_torneio.desc');
+    const totals={};
+    levels.forEach(l=>totals[l.id]={});
+    let completed=0;
+    for(const t of tournaments){
+      const teams=await api('/rest/v1/equipas?select=id,nome,posicao_inicial&torneio_id=eq.'+encodeURIComponent(t.id)+'&order=posicao_inicial.asc');
+      if(!teams.length)continue;
+      const ids=teams.map(x=>x.id).join(',');
+      const links=await api('/rest/v1/equipa_jogadores?select=equipa_id,jogador_id,nome_registado,ordem&equipa_id=in.('+ids+')');
+      const js=await api('/rest/v1/jogos?select=id,equipa_a_id,equipa_b_id,fase,estado,score_a,score_b,ordem&torneio_id=eq.'+encodeURIComponent(t.id)+'&order=ordem.asc');
+      const placements=getPlacements(t,teams,js); if(!placements)continue;
+      completed++;
+      for(let p=1;p<=8;p++){
+        const eid=placements[p]; if(!eid)continue;
+        for(const link of links.filter(x=>x.equipa_id===eid)){
+          // Preferimos SEMPRE jogador_id. Só usamos o nome como fallback para registos antigos
+          // que ainda não tenham jogador_id, procurando exclusivamente na base jogadores.
+          let player=link.jogador_id?playerById.get(String(link.jogador_id)):null;
+          if(!player&&link.nome_registado){
+            const matches=playerByName.get(norm(link.nome_registado))||[];
+            if(matches.length===1)player=matches[0];
+          }
+          if(!player||!allowed.has(String(player.nivel||'')))continue;
+          const level=String(player.nivel); const id=String(player.id);
+          if(!totals[level][id])totals[level][id]={id,nome:player.nome,nivel:level,pontos:0,mixes:0,p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0};
+          const r=totals[level][id];
+          r.pontos+=points[p]||0; r.mixes++;
+          r['p'+p]++;
+        }
+      }
+    }
+    const order=(a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||b.mixes-a.mixes||a.nome.localeCompare(b.nome,'pt');
+    let html='<div class="levels">';
+    for(const l of levels){
+      const rows=Object.values(totals[l.id]).sort(order);
+      html+=`<section class="level"><h3>${l.title}<span>${rows.length} jogador(es)</span></h3>`;
+      if(!rows.length){html+='<div class="empty">Ainda sem resultados neste nível.</div></section>';continue;}
+      html+='<div style="overflow-x:auto"><table><thead><tr><th>#</th><th class="name">Jogador</th><th>Pontos</th><th>Mixes</th><th>1.º</th><th>2.º</th><th>3.º</th></tr></thead><tbody>';
+      rows.forEach((r,i)=>{const cls=i===0?'gold':i===1?'silver':i===2?'bronze':'';html+=`<tr class="${cls}"><td><b>${i+1}</b></td><td class="name">${esc(r.nome)}</td><td><b>${r.pontos}</b></td><td>${r.mixes}</td><td>${r.p1}</td><td>${r.p2}</td><td>${r.p3}</td></tr>`});
+      html+='</tbody></table></div></section>';
+    }
+    html+='</div>';
+    $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;
+    $('ranking').innerHTML=html;
+  }catch(e){$('summary').textContent='';$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
 }
 load();
-</script></body></html>
+</script>
+</body>
+</html>

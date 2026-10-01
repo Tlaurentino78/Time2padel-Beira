@@ -61,6 +61,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 <div class="userbar"><a class="btn" href="index.html">🏠 Página Inicial</a><span id="userRole" class="role"></span><button class="logout" onclick="logout()">Sair</button></div>
 <div class="datebox"><b>Data:</b> <input id="date" type="date"></div>
 </div>
+<div id="dbStatus" style="margin:8px 0;padding:10px;border-radius:10px;background:#eef6ff;color:#234;font-size:13px;font-weight:700">🔄 A carregar reservas da base de dados…</div>
 <div class="legend">
 <span class="free">Disponível</span><span class="res">Reserva</span><span class="game">Jogo</span><span class="class">Aula</span><span class="mix">Mix</span>
 </div>
@@ -337,24 +338,37 @@ async function cancelarReserva(ev){
 
 async function renderReal(){
   render();
+  const status=document.getElementById("dbStatus");
+  status.style.background="#eef6ff";
+  status.style.color="#234";
+  status.textContent="🔄 A carregar reservas da base de dados…";
   try{
-    if(!currentUser || !accessToken) return;
-    const selectFields="id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
-    // Carrega as reservas sem filtro de data e filtra no navegador.
-    // Isto evita problemas de interpretação do filtro de datas no PostgREST.
-    const q=`${SB}/rest/v1/reservas?select=${selectFields}&order=data_reserva.asc,hora_inicio.asc`;
-    const r=await fetch(q,{headers:{...authHeaders(),Accept:"application/json"},cache:"no-store"});
-    if(!r.ok){
-      const err=await r.text();
-      console.error("Erro ao carregar reservas:",err);
+    if(!currentUser || !accessToken){
+      status.style.background="#fff3cd";
+      status.style.color="#664d03";
+      status.textContent="Sessão ainda não iniciada.";
       return;
     }
-    const allRows=await r.json();
     const targetDate=String(date.value).slice(0,10);
-    const rows=allRows.filter(ev=>String(ev.data_reserva).slice(0,10)===targetDate);
+    const selectFields="id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
+    const url=`${SB}/rest/v1/reservas?select=${encodeURIComponent(selectFields)}&data_reserva=eq.${encodeURIComponent(targetDate)}&order=hora_inicio.asc`;
+    const r=await fetch(url,{method:"GET",headers:{...authHeaders(),"Accept":"application/json","Accept-Profile":"public"},cache:"no-store"});
+    const raw=await r.text();
+    if(!r.ok){
+      console.error("Reservas HTTP",r.status,raw);
+      status.style.background="#ffe5e5";
+      status.style.color="#a40000";
+      status.textContent=`Erro ao carregar reservas (${r.status}). ${raw.slice(0,180)}`;
+      return;
+    }
+    let rows=[];
+    try{rows=JSON.parse(raw)}catch(e){
+      status.style.background="#ffe5e5"; status.style.color="#a40000";
+      status.textContent="Resposta inválida do Supabase."; return;
+    }
     const typeClass={Reserva:"res",Jogo:"game",Aula:"class",Mix:"mix"};
-    const norm=x=>String(x??"").trim().toLowerCase().replace(/\s+/g,"");
-    const toMin=x=>{const z=String(x??"").slice(0,5);const [h,m]=z.split(":").map(Number);return h*60+m};
+    const norm=x=>String(x??"").trim().toLowerCase().replace(/[\s_-]+/g,"");
+    const toMin=x=>{const z=String(x??"").slice(0,5);const parts=z.split(":").map(Number);return parts[0]*60+parts[1]};
     const trs=document.querySelectorAll("#body tr");
     rows.forEach(ev=>{
       const ci=courts.findIndex(c=>norm(c)===norm(ev.campo));
@@ -367,15 +381,21 @@ async function renderReal(){
         const cell=trs[i].querySelectorAll(".slot")[ci];
         if(!cell) continue;
         cell.className="slot "+(typeClass[ev.tipo]||"res");
-        const nome=ev.jogador_nome||"";
-        cell.textContent=currentRole==="admin"?(nome||ev.tipo):ev.tipo;
-        cell.title=(nome||ev.tipo)+" · Tocar para editar";
+        cell.textContent=currentRole==="admin"?(ev.jogador_nome||ev.tipo):ev.tipo;
+        cell.title=(ev.jogador_nome||ev.tipo)+" · Tocar para editar";
         cell.onclick=(e)=>{e.stopPropagation();openEditModal(ev)};
       }
     });
-  }catch(e){console.error("Erro ao carregar reservas:",e)}
+    status.style.background=rows.length?"#e9f8ef":"#fff3cd";
+    status.style.color=rows.length?"#176b38":"#664d03";
+    status.textContent=rows.length?`✅ ${rows.length} reserva(s) carregada(s) para ${targetDate}.`:`🟡 Nenhuma reserva encontrada para ${targetDate}.`;
+  }catch(e){
+    console.error("Erro ao carregar reservas",e);
+    status.style.background="#ffe5e5";
+    status.style.color="#a40000";
+    status.textContent="Erro de ligação ao Supabase: "+e.message;
+  }
 }
-
 date.addEventListener("change",renderReal);
 render();
 restoreSession();

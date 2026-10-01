@@ -27,7 +27,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 .mhead{padding:18px 20px;border-bottom:1px solid #eee;font-size:20px;font-weight:800}.mbody{padding:18px 20px}.field{margin-bottom:15px}.field label{display:block;font-weight:800;margin-bottom:7px}
 .hint{font-size:12px;color:#777;margin-top:5px}.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}.actions button{padding:12px 18px;border-radius:10px;border:1px solid #ccc;font-weight:800}
 .save{background:#111;color:#fff!important}.cancel{background:#fff}
-.suggestions{border:1px solid #ddd;border-radius:9px;margin-top:4px;overflow:hidden;background:#fff}.suggestions div{padding:11px;cursor:pointer}.suggestions div:hover{background:#f2f2f2}
+.guestField.hidden{display:none}.suggestions{border:1px solid #ddd;border-radius:9px;margin-top:4px;overflow:hidden;background:#fff}.suggestions div{padding:11px;cursor:pointer}.suggestions div:hover{background:#f2f2f2}
 .typegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.type{border:0;border-radius:10px;padding:12px 6px;color:#fff;font-weight:800;cursor:pointer}.type.selected{outline:3px solid #111;outline-offset:1px}
 @media(max-width:600px){table{min-width:560px}.court{min-width:70px}.slot{min-width:55px;font-size:10px}.timecell{min-width:48px;font-size:11px}header{font-size:19px}.wrap{padding:10px}.typegrid{grid-template-columns:repeat(2,1fr)}}
 
@@ -80,7 +80,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 <div class="mhead">📅 Novo evento — <span id="modalTitle"></span></div>
 <div class="mbody">
 <div class="field"><label>Jogador</label><input id="player" autocomplete="off" placeholder="Escreve o nome do jogador..."><div id="suggestions" class="suggestions"></div><div id="playerHint" class="hint">São mostrados apenas jogadores de reservas aprovados. Os jogadores dos Mixes não aparecem aqui.</div></div>
-<div class="field"><label>Convidado</label><input id="guest" placeholder="Nome de alguém de fora, se existir"></div>
+<div class="field" id="guestField"><label>Convidado</label><input id="guest" placeholder="Nome de alguém de fora, se existir"></div>
 <div class="field"><label>Tipo de Reserva</label>
 <div class="typegrid">
 <button class="type res" data-type="Reserva">Reserva</button>
@@ -133,6 +133,7 @@ function showApp(){
  document.getElementById("loginGate").style.display="none";
  document.getElementById("userRole").textContent=currentRole==="admin"?"👑 Administrador":"🎾 Jogador";
  if(currentRole==="admin") loadPlayers(); else players=[];
+ document.getElementById("guestField").classList.toggle("hidden", currentRole!=="admin");
  renderReal();
 }
 function logout(){localStorage.removeItem("tp_access_token");localStorage.removeItem("tp_refresh_token");location.reload()}
@@ -169,7 +170,7 @@ function render(){
  });
 }
 function openModal(ci,ti,t){
- current={ci,ti,t};document.getElementById("modalTitle").textContent=`${courts[ci]} · ${date.value} · ${t}`;document.getElementById("modal").classList.add("show");document.getElementById("guest").value="";document.getElementById("duration").value="30";setType("Reserva");suggestions.innerHTML="";
+ current={ci,ti,t};document.getElementById("modalTitle").textContent=`${courts[ci]} · ${date.value} · ${t}`;document.getElementById("modal").classList.add("show");document.getElementById("guest").value="";document.getElementById("guestField").classList.toggle("hidden", currentRole!=="admin");document.getElementById("duration").value="30";setType("Reserva");suggestions.innerHTML="";
  if(currentRole==="admin"){player.disabled=false;player.value="";player.placeholder="Escreve o nome do jogador...";document.getElementById("playerHint").textContent="Administrador: podes escolher qualquer jogador da lista de reservas.";player.focus();}
  else{player.disabled=true;player.value=currentReservaPlayer?.nome||"";document.getElementById("playerHint").textContent=currentReservaPlayer?"A tua reserva fica automaticamente associada ao teu nome.":"Não foi encontrado o teu registo de jogador de reservas aprovado.";}
 }
@@ -217,7 +218,8 @@ async function saveDemo(){
  const hora=times[ti];
  const startMin=Number(hora.slice(0,2))*60+Number(hora.slice(3));
  if(startMin+duration>23*60){alert("A duração ultrapassa as 23:00.");return}
- const convidado=document.getElementById("guest").value.trim();
+ const convidado=currentRole==="admin" ? document.getElementById("guest").value.trim() : "";
+ if(currentRole!=="admin" && document.getElementById("guest").value.trim()){alert("Apenas o Administrador pode adicionar Convidados.");return;}
  let jogadorId=null,jogadorNome="";
  if(currentRole==="admin"){jogadorNome=player.value.trim();const p=players.find(x=>x.id===player.dataset.playerId)||players.find(x=>x.nome===jogadorNome);jogadorId=p?.id||null;}
  else{jogadorId=currentReservaPlayer?.id||null;jogadorNome=currentReservaPlayer?.nome||"";}
@@ -250,7 +252,8 @@ async function saveDemo(){
 async function renderReal(){
  render();
  try{
-   const q=`${SB}/rest/v1/reservas?select=data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado&data_reserva=eq.${encodeURIComponent(date.value)}`;
+   const selectFields=currentRole==="admin"?"data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado":"data_reserva,hora_inicio,duracao_min,campo,tipo";
+   const q=`${SB}/rest/v1/reservas?select=${selectFields}&data_reserva=eq.${encodeURIComponent(date.value)}`;
    const r=await fetch(q,{headers:authHeaders()});
    if(!r.ok)return;
    const rows=await r.json();
@@ -264,7 +267,14 @@ async function renderReal(){
      for(let i=ti;i<Math.min(ti+n,rowsByTime.length);i++){
        const cells=rowsByTime[i].querySelectorAll(".slot");
        const cell=cells[ci];
-       if(cell){cell.className="slot "+(typeClass[ev.tipo]||"res");cell.textContent=ev.tipo;}
+       if(cell){cell.className="slot "+(typeClass[ev.tipo]||"res");
+         if(currentRole==="admin"){
+           const nome=ev.jogador_nome||"";
+           const convidado=ev.convidado?` · Convidado: ${ev.convidado}`:"";
+           cell.textContent=nome ? `${ev.tipo} · ${nome}${convidado}` : ev.tipo;
+           cell.title=cell.textContent;
+         }else{cell.textContent=ev.tipo; cell.title=ev.tipo;}
+       }
      }
    });
  }catch(e){}

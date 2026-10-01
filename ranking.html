@@ -157,17 +157,32 @@ async function load(){
 
       for(let p=1;p<=8;p++){
         const eid=placements[p]; if(!eid)continue;
+        const team=teams.find(x=>String(x.id)===String(eid));
+        const candidateNames=[];
+        if(team?.nome){
+          // Os Mixes guardam os nomes dos jogadores dentro do nome da equipa.
+          // Isto permite ao ranking funcionar mesmo nos Mixes antigos em que jogador_id ficou vazio.
+          String(team.nome).split(/\s*\/\s*|\s+\+\s+/).map(x=>x.trim()).filter(Boolean).forEach(x=>candidateNames.push(x));
+        }
         for(const link of links.filter(x=>String(x.equipa_id)===String(eid))){
-          let player=link.jogador_id?playerById.get(String(link.jogador_id)):null;
-          if(!player&&link.nome_registado){
-            const matches=playerByName.get(norm(link.nome_registado))||[];
-            if(matches.length===1)player=matches[0];
+          if(link.nome_registado) candidateNames.push(String(link.nome_registado).trim());
+        }
+        const seenNames=new Set();
+        for(const candidate of candidateNames){
+          const nk=norm(candidate); if(!nk||seenNames.has(nk))continue; seenNames.add(nk);
+          let player=null;
+          const matches=playerByName.get(nk)||[];
+          if(matches.length===1) player=matches[0];
+          if(!player){
+            for(const link of links.filter(x=>String(x.equipa_id)===String(eid))){
+              if(norm(link.nome_registado)===nk && link.jogador_id){ player=playerById.get(String(link.jogador_id)); if(player)break; }
+            }
           }
           if(!player)continue;
           const level=String(player.nivel||'').trim().toUpperCase();
           if(!allowed.has(level))continue;
           playersFound++;
-          const id=player.id?String(player.id):'name-'+norm(player.nome);
+          const id=player.id?String(player.id):'name-'+nk;
           if(!totals[level][id])totals[level][id]={id,nome:player.nome,nivel:level,pontos:0,mixes:0,p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0};
           const r=totals[level][id]; r.pontos+=points[p]||0; r.mixes++; r['p'+p]++;
         }

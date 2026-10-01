@@ -17,7 +17,7 @@ input,select{padding:11px;border:1px solid #aaa;border-radius:9px;font-size:16px
 .res{background:#27ae60}.game{background:#2980b9}.class{background:#8e44ad}.mix{background:#e67e22}.free{background:#fff;color:#555!important;border:1px solid #ddd}
 .card{background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden}.scroll{overflow:auto}
 table{border-collapse:collapse;min-width:780px;width:100%}th,td{border:1px solid #ddd;text-align:center}
-th{background:#f0f2f4;padding:9px;font-size:13px;position:sticky;top:0;z-index:3}th:first-child{left:0;z-index:4}
+th{background:#f0f2f4;padding:9px 7px;font-size:13px;position:sticky;top:0;z-index:3;white-space:normal;line-height:1.15}th:first-child{left:0;z-index:4}
 .court{font-weight:800;background:#fff;min-width:125px;position:sticky;left:0;z-index:2}
 .slot{height:42px;min-width:74px;padding:2px;border:0;width:100%;font-size:11px;font-weight:800;cursor:pointer}
 .slot.free{background:#fff;color:#777}.slot.res{background:#27ae60;color:#fff}.slot.game{background:#2980b9;color:#fff}.slot.class{background:#8e44ad;color:#fff}.slot.mix{background:#e67e22;color:#fff}
@@ -68,8 +68,8 @@ th{background:#f0f2f4;padding:9px;font-size:13px;position:sticky;top:0;z-index:3
 <th>Mozfert</th>
 <th>Orangefreight</th>
 <th>Lenmed-MSS</th>
-<th>Ferragens Chiveve</th>
-<th>Academia Time2Padel</th>
+<th>Ferragens<br>Chiveve</th>
+<th>Academia<br>Time2Padel</th>
 </tr></thead><tbody id="body"></tbody></table>
 </div></div>
 <div class="note">Intervalos de 30 minutos, das 07:00 às 23:00. Toca num horário disponível para criar o evento. A lista de jogadores é separada da base dos Mixes.</div>
@@ -95,8 +95,6 @@ th{background:#f0f2f4;padding:9px;font-size:13px;position:sticky;top:0;z-index:3
 <script>
 const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
 const courts=["Visioluz","Mozfert","Orangefreight","Lenmed-MSS","Ferragens Chiveve","Academia Time2Padel"];
-const times=[]; for(let m=7*60;m<=23*60;m+=30){const hh=String(Math.floor(m/60)).padStart(2,"0"),mm=String(m%60).padStart(2,"0");times.push(`${hh}:${mm}`);}
-const times=[];
 for(let m=7*60;m<=23*60;m+=30){
   times.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
 }

@@ -1,12 +1,470 @@
-<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time2Padel — Jogadores</title><style>:root{--g:#20cf68;--d:#303030;--bg:#f4f4f4;--line:#ddd}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial;color:#222}header{background:var(--d);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}.topnav{display:flex;gap:7px;flex-wrap:wrap;padding:10px;max-width:1200px;margin:auto}.topnav a{background:#fff;border:1px solid #ddd;border-radius:8px;padding:9px 11px;text-decoration:none;color:#222;font-weight:800;font-size:13px}.wrap{max-width:1100px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:12px;font-size:19px;font-weight:800}.body{padding:14px}.grid{display:grid;grid-template-columns:1fr 150px auto;gap:8px}.grid input,.grid select,.search{height:42px;border:1px solid #aaa;border-radius:8px;padding:8px;font-size:15px}.green{background:var(--g);color:#fff;border:1px solid var(--g);border-radius:8px;font-weight:800;padding:9px 12px}.search{width:100%;margin:10px 0}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:9px;border-bottom:1px solid #eee;text-align:left}.actions button{margin-right:5px}.win{font-weight:900;color:#159a52}@media(max-width:650px){.grid{grid-template-columns:1fr 110px}.grid button{grid-column:1/-1}.table{font-size:13px}}</style><script src="cloud.js"></script></head><body><header>Time2Padel 🏆 — Base de Jogadores</header><nav class="topnav"><a href="index.html">🏠 Início</a><a href="jogadores.html">👤 Jogadores</a><a href="mega-mix.html">🏆 Mega Mix</a><a href="mix6.html">🎾 Mix 6</a><a href="mix4.html">🎾 Mix 4</a><a href="publico.html">📣 Público</a></nav><main class="wrap"><div class="card"><div class="head">👤 Base de Dados Central</div><div class="body"><p>Esta base é <b>manual</b>. As inscrições não criam jogadores automaticamente.</p><div class="grid"><input id="name" placeholder="Nome completo"><select id="level"><option>M1</option><option>M2</option><option selected>M3</option><option>M4</option><option>M5</option><option>F1</option><option>F2</option><option>F3</option><option>F4</option><option>F5</option><option>Outro</option></select><button class="green" id="add">+ ADICIONAR</button></div><input class="search" id="search" placeholder="Pesquisar jogador..."><div id="msg"></div><div id="list"></div></div></div></main><script>
-let rows=[];let editId=null;
-async function boot(){const u=await tpRequireAdmin();if(!u)return;tpAddLogout();await refresh();}
-async function refresh(){rows=await tpLoadPlayers();render();}
-function esc(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-function render(){const q=tpNorm(document.getElementById('search').value);const arr=rows.filter(p=>tpNorm(p.nome).includes(q));document.getElementById('list').innerHTML='<table class="table"><thead><tr><th>Jogador</th><th>Nível</th><th>Mix 1.º Lugar</th><th>Ações</th></tr></thead><tbody>'+arr.map(p=>`<tr><td>${esc(p.nome)}</td><td>${esc(p.nivel)}</td><td class="win">${p.vitorias_mix_1_lugar||0}</td><td class="actions"><button onclick="edit('${p.id}')">✏️ Editar</button><button onclick="del('${p.id}')">🗑️</button></td></tr>`).join('')+'</tbody></table>';}
-document.getElementById('search').oninput=render;
-document.getElementById('add').onclick=async()=>{const nome=document.getElementById('name').value.trim(),nivel=document.getElementById('level').value,msg=document.getElementById('msg');if(!nome)return;try{const c=await tpWait();if(editId){const {error}=await c.from('jogadores').update({nome,nivel,updated_at:new Date().toISOString()}).eq('id',editId);if(error)throw error;editId=null;document.getElementById('add').textContent='+ ADICIONAR';}else{const {error}=await c.from('jogadores').insert({nome,nivel});if(error)throw error;}document.getElementById('name').value='';msg.textContent='✓ Guardado';await refresh();}catch(e){msg.textContent='Erro: '+e.message}};
-window.edit=id=>{const p=rows.find(x=>x.id===id);if(!p)return;editId=id;document.getElementById('name').value=p.nome;document.getElementById('level').value=p.nivel;document.getElementById('add').textContent='✓ GUARDAR ALTERAÇÃO';window.scrollTo({top:0,behavior:'smooth'});};
-window.del=async id=>{if(!confirm('Eliminar este jogador da base?'))return;const c=await tpWait();const {error}=await c.from('jogadores').update({ativo:false,updated_at:new Date().toISOString()}).eq('id',id);if(error)alert(error.message);else await refresh();};
-boot();
-</script></body></html>
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Torneio</title>
+<style>
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}
+header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}
+.wrap{max-width:1200px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.head{background:var(--g);color:#fff;padding:12px 14px;font-size:20px;font-weight:800}.body{padding:13px}
+textarea{width:100%;min-height:170px;border:1px solid #aaa;border-radius:8px;padding:10px;font-size:16px}
+button{padding:10px 14px;border:1px solid #aaa;background:#fff;border-radius:7px;font-weight:800}
+.green{background:var(--g);border-color:var(--g);color:#fff}.row{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.msg{margin-top:8px;font-weight:700}.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.team{padding:9px;background:#f7f7f7;border:1px solid #ddd;border-radius:7px;font-size:14px}
+.nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.nav button.active{background:var(--g);color:#fff;border-color:var(--g)}
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:0;background:#ccc;border:1px solid #ccc;overflow-x:auto;align-items:stretch}.court{min-width:220px;display:flex;flex-direction:column}.court .match{flex:1 1 0}
+.court{background:#fff}.ct{background:var(--g);color:#fff;text-align:center;padding:10px;font-weight:800}
+.match{height:210px;min-height:210px;border-bottom:1px solid #eee;padding:10px 7px;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden}.round{flex:0 0 auto}.round{font-size:12px;color:#777;margin-bottom:5px}
+.names{font-weight:800;line-height:1.4;min-height:44px}.scores{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:7px}
+.score{width:52px;height:40px;border:2px solid #aaa;border-radius:7px;text-align:center;font-size:21px;font-weight:800}
+.score:focus{outline:2px solid var(--g);border-color:var(--g)}.score:disabled{background:#eee;color:#999}
+.ok{font-size:11px;color:#159a52;margin-top:5px}.wait{font-size:11px;color:#999;margin-top:5px}
+.groups{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.group{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.group h3{margin:0;background:var(--g);color:#fff;padding:10px}table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}th:first-child,td:first-child{text-align:left}
+.final{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}.final h2{margin:0;background:var(--g);color:#fff;padding:12px}
+.pos{display:flex;gap:12px;align-items:center;padding:12px 13px;border-bottom:1px solid #eee}.pos.champion{background:#fff8d8;border-left:6px solid #f2c300}.num{width:42px;text-align:center;font-weight:900;font-size:18px}.fn{font-weight:800}.championLabel{margin-left:auto;color:#b18400;font-weight:900;font-size:12px}
+.hidden{display:none}.note{font-size:12px;color:#777;margin-top:6px}
+@media(max-width:800px){.teams{grid-template-columns:1fr 1fr}.board{overflow-x:auto;grid-template-columns:repeat(4,220px)}.groups{grid-template-columns:1fr}}
+
+.playerAdmin{display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center}
+.playerAdmin input,.playerAdmin select{width:100%;height:42px;border:1px solid #aaa;border-radius:7px;padding:8px;font-size:15px}
+.playerTable{width:100%;border-collapse:collapse;margin-top:12px}
+.playerTable th,.playerTable td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+.playerLevel{border:1px solid #aaa;border-radius:6px;padding:6px}
+.playerWin{font-weight:900;color:#159a52}
+.playerActions button{padding:6px 9px;font-size:12px}
+.playerSearch{width:100%;height:40px;border:1px solid #aaa;border-radius:7px;padding:8px;margin-top:10px}
+@media(max-width:650px){.playerAdmin{grid-template-columns:1fr 110px}.playerAdmin button{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header>Time2Padel 🏆</header>
+<div class="wrap">
+<div class="card">
+<div class="head">👤 BASE DE DADOS DE JOGADORES</div>
+<div class="body">
+<div class="note"><b>A Base de Dados é exclusivamente manual.</b> A inscrição do WhatsApp nunca adiciona jogadores. Se o jogador não estiver cadastrado, aparece como <b>Sem nível</b> e não entra nas estatísticas. <b>Mix 1.º Lugar:</b> só conta 1 vitória quando o jogador faz parte da equipa campeã da FINAL.</div>
+<div class="playerAdmin" style="margin-top:9px">
+<input id="playerName" placeholder="Nome do jogador">
+<select id="playerLevel">
+<option value="M1">M1</option><option value="M2">M2</option><option value="M3" selected>M3</option><option value="M4">M4</option><option value="M5">M5</option>
+<option value="F1">F1</option><option value="F2">F2</option><option value="F3">F3</option><option value="F4">F4</option><option value="F5">F5</option><option value="Outro">Outro</option>
+</select>
+<button class="green" id="addPlayer">+ ADICIONAR JOGADOR</button>
+</div>
+<input id="playerSearch" class="playerSearch" placeholder="Pesquisar jogador...">
+<div id="playerTableWrap"></div>
+</div></div>
+
+
+<div class="card">
+<div class="head">👥 Inscrições pelo WhatsApp</div>
+<div class="body">
+<textarea id="wa" placeholder="1-🎾 Greg/Rishil
+2-🎾 Humza/Ismail
+3-🎾 Saad / Shani
+4-🎾 Mercia / Miguel F
+5-🎾 Qadir / Ossama
+6-🎾 Naushad / Darren
+7-🎾 Jan / Tiago
+8-🎾 Rahul / Dylan"></textarea>
+<div class="row"><button class="green" id="load">✓ ADICIONAR 8 EQUIPAS</button><button id="clear">Limpar</button></div>
+<div id="msg" class="msg"></div>
+<div id="matchPreview" class="note" style="margin-top:8px"></div>
+</div></div>
+
+<div class="card"><div class="head">🏆 Equipas</div><div class="body"><div id="teams" class="teams"></div></div></div>
+
+<div class="nav">
+<button class="active" id="gamesBtn">ORDEM DE JOGOS</button>
+<button id="finalBtn">CLASSIFICAÇÃO FINAL</button>
+</div>
+
+<div id="games">
+<div class="card" style="margin-bottom:10px"><div class="body" id="progress" style="font-weight:700"></div></div>
+<div class="board" id="board"></div>
+<div class="groups">
+<div class="group"><h3>Grupo A</h3><table><thead><tr><th>Equipa</th><th>V</th><th>D</th><th>J+</th><th>J−</th></tr></thead><tbody id="ga"></tbody></table></div>
+<div class="group"><h3>Grupo B</h3><table><thead><tr><th>Equipa</th><th>V</th><th>D</th><th>J+</th><th>J−</th></tr></thead><tbody id="gb"></tbody></table></div>
+</div></div>
+
+<div id="final"><div class="final"><h2>🏆 CLASSIFICAÇÃO FINAL — 1.º AO 8.º</h2><div id="fl"></div></div></div>
+
+<div class="card" style="margin-top:12px"><div class="body">
+<button id="reset">Apagar resultados</button><div class="note">Os resultados ficam guardados neste navegador.</div>
+</div></div>
+</div>
+
+<script>
+const DEFAULT=["Equipa 1","Equipa 2","Equipa 3","Equipa 4","Equipa 5","Equipa 6","Equipa 7","Equipa 8"];
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co';
+const KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+let teams=read("t2p_teams",DEFAULT), scores=read("t2p_scores",{}), players=read("t2p_players",{});
+let syncingPlayers=false;
+function supa(path,opts={}){
+ return fetch(SB+path,{...opts,headers:{apikey:KEY,'Content-Type':'application/json',...(opts.headers||{})}}).then(async r=>{
+   const txt=await r.text(); let d=null; try{d=txt?JSON.parse(txt):null}catch(e){d=txt}
+   if(!r.ok) throw Error(d?.message||d?.hint||String(d)||('HTTP '+r.status));
+   return d;
+ });
+}
+async function loadPlayersFromSupabase(){
+ try{
+   const rows=await supa('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
+   if(!Array.isArray(rows)) return;
+   // Mantém os jogadores locais existentes e acrescenta os que já estão no Supabase.
+   for(const r of rows){
+     const name=String(r.nome||'').trim(); if(!name) continue;
+     const k=normName(name);
+     if(!players[k]) players[k]={name,level:String(r.nivel||'Sem nível'),id:String(r.id)};
+     else { players[k].id=String(r.id); if(!players[k].level || players[k].level==='Sem nível') players[k].level=String(r.nivel||'Sem nível'); }
+   }
+   persist();
+   renderAll();
+ }catch(e){
+   console.warn('Não foi possível carregar jogadores do Supabase:',e);
+ }
+}
+async function syncOnePlayer(nameKey){
+ const p=players[nameKey]; if(!p) return false;
+ try{
+   if(p.id){
+     await supa('/rest/v1/jogadores?id=eq.'+encodeURIComponent(p.id),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({nome:p.name,nivel:p.level})});
+   }else{
+     const rows=await supa('/rest/v1/jogadores',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({nome:p.name,nivel:p.level})});
+     if(Array.isArray(rows)&&rows[0]?.id) p.id=String(rows[0].id);
+     else if(rows?.id) p.id=String(rows.id);
+   }
+   persist(); return true;
+ }catch(e){
+   alert('O jogador ficou guardado neste navegador, mas não foi possível sincronizá-lo com a Base online.\n\n'+e.message);
+   return false;
+ }
+}
+async function syncAllPlayers(){
+ if(syncingPlayers)return;
+ syncingPlayers=true;
+ try{ for(const k of Object.keys(players)) await syncOnePlayer(k); }
+ finally{syncingPlayers=false; }
+}
+function read(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function persist(){localStorage.setItem("t2p_teams",JSON.stringify(teams));localStorage.setItem("t2p_scores",JSON.stringify(scores));localStorage.setItem("t2p_players",JSON.stringify(players))}
+const M=[
+["m1","1ª Ronda","A1","A2"],["m2","1ª Ronda","A3","A4"],["m3","1ª Ronda","B1","B2"],["m4","1ª Ronda","B3","B4"],
+["m5","2ª Ronda","A1","A3"],["m6","2ª Ronda","A2","A4"],["m7","2ª Ronda","B1","B3"],["m8","2ª Ronda","B2","B4"],
+["m9","3ª Ronda","A1","A4"],["m10","3ª Ronda","A2","A3"],["m11","3ª Ronda","B1","B4"],["m12","3ª Ronda","B2","B3"],
+["m13","1/2 Final","1A","2B"],["m14","1/2 Final","1B","2A"],["m15","3º/4º Lugar","L13","L14"],
+["m16","Playoff 5º/8º","3A","3B"],["m17","Playoff 5º/8º","4A","4B"],["m18","FINAL","W13","W14"],
+["m19","5º/6º Lugar","W16","W17"],["m20","7º/8º Lugar","L16","L17"]
+].map(x=>({id:x[0],round:x[1],a:x[2],b:x[3]}));
+const byId=id=>M.find(m=>m.id===id);
+const COURTS=[["m1","m5","m9","m13","m18"],["m2","m6","m10","m14","m15"],["m3","m7","m11","m16","m19"],["m4","m8","m12","m17","m20"]];
+
+function clean(s){return s.trim().replace(/^\s*\d+\s*[-.)]\s*/,"").replace(/🎾|🏓|🎯|•/g,"").replace(/\s+/g," ").trim()}
+function parse(s){return s.split(/\r?\n/).map(clean).filter(Boolean).slice(0,8)}
+function sc(id){let s=scores[id];if(!s||s[0]===""||s[1]==="")return null;let a=+s[0],b=+s[1];return Number.isFinite(a)&&Number.isFinite(b)?[a,b]:null}
+function win(id){let s=sc(id);return s&&s[0]!==s[1]?(s[0]>s[1]?"a":"b"):null}
+
+function group(g){
+ const off=g==="A"?0:4;
+ let r=[0,1,2,3].map(i=>({name:teams[off+i]||"A definir",w:0,d:0,p:0,m:0}));
+ M.filter(m=>+m.id.slice(1)<=12 && m.a[0]===g).forEach(m=>{
+   let s=sc(m.id);if(!s)return;
+   let ia=r.findIndex(x=>x.name===team(m.a)),ib=r.findIndex(x=>x.name===team(m.b));
+   if(ia<0||ib<0)return;
+   r[ia].p+=s[0];r[ia].m+=s[1];r[ib].p+=s[1];r[ib].m+=s[0];
+   if(s[0]>s[1]){r[ia].w++;r[ib].d++}else{r[ib].w++;r[ia].d++}
+ });
+ r.sort((a,b)=>b.w-a.w || ((b.p-b.m)-(a.p-a.m)) || (b.p-a.p));
+ return r;
+}
+
+function normName(s){
+ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+}
+function splitPlayers(teamName){
+ return String(teamName||"").split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2);
+}
+function playerInfo(name){
+ const raw=String(name||"").trim();
+ const key=normName(raw);
+
+ // 1) Correspondência exacta
+ if(players[key]) return players[key];
+
+ // 2) Primeiro nome / parte do nome.
+ // Ex.: "Tiago" encontra "Tiago Laurentino".
+ const entries=Object.values(players);
+ const candidates=entries.filter(p=>{
+   const pk=normName(p.name);
+   if(!pk) return false;
+   if(pk===key) return true;
+   if(pk.startsWith(key+" ")) return true;
+   if(pk.includes(" "+key+" ")) return true;
+   if(pk.endsWith(" "+key)) return true;
+   // "Miguel F" pode encontrar "Miguel Fernandes"
+   const parts=key.split(" ").filter(Boolean);
+   const pparts=pk.split(" ").filter(Boolean);
+   return parts.length>0 && parts.every(part=>pparts.some(pp=>pp.startsWith(part)));
+ });
+
+ // Se houver uma única correspondência, completa automaticamente.
+ if(candidates.length===1) return candidates[0];
+
+ // 3) Correspondência por prefixo dos tokens, mesmo com nomes abreviados.
+ const tokenMatches=entries.filter(p=>{
+   const pk=normName(p.name);
+   const parts=key.split(" ").filter(Boolean);
+   const pparts=pk.split(" ").filter(Boolean);
+   return parts.length>0 && parts.every(part=>pparts.some(pp=>pp.startsWith(part)));
+ });
+ if(tokenMatches.length===1) return tokenMatches[0];
+
+ // Se houver 0 ou várias, não inventamos um jogador.
+ return {name:raw,level:"Sem nível"};
+}
+function formatPlayer(name){
+ const p=playerInfo(name);
+ return p.name+" ("+p.level+")";
+}
+function formatTeam(name){
+ return splitPlayers(name).map(formatPlayer).join(" / ");
+}
+function team(code){
+ code=String(code||"");
+ if(/^A[1-4]$/.test(code)) return teams[Number(code[1])-1] || "A definir";
+ if(/^B[1-4]$/.test(code)) return teams[4+Number(code[1])-1] || "A definir";
+ if(/^[1-4][AB]$/.test(code)){
+   const r=group(code[1]);
+   return r[Number(code[0])-1]?.name || "A aguardar";
+ }
+ const m=byId(code.slice(1) ? "m"+code.slice(1) : "");
+ if(!m) return "A aguardar";
+ const w=win(m.id);
+ if(!w) return "A aguardar";
+ const side = code[0]==="W" ? w : (w==="a" ? "b" : "a");
+ return team(m[side]);
+}
+
+function editReady(m){
+ let a=team(m.a),b=team(m.b);
+ return !["A aguardar","A definir"].includes(a)&&!["A aguardar","A definir"].includes(b);
+}
+
+function renderBoard(){
+ const board=document.getElementById("board");board.innerHTML="";
+ COURTS.forEach((ids,c)=>{
+  let col=document.createElement("div");col.className="court";
+  col.innerHTML='<div class="ct">Campo '+(c+1)+'</div>';
+  ids.forEach(id=>{
+   let m=byId(id),s=scores[id]||["",""],done=sc(id),ready=editReady(m);
+   let rawA=team(m.a),rawB=team(m.b);
+   let el=document.createElement("div");el.className="match";
+   el.innerHTML='<div class="round">'+m.round+'</div>'+
+    '<div class="names">'+esc(formatTeam(rawA))+'<br>'+esc(formatTeam(rawB))+'</div>'+
+    '<div class="scores">'+
+    '<input class="score" data-id="'+id+'" data-i="0" inputmode="numeric" maxlength="2" value="'+(s[0]||"")+'" '+(ready?"":"disabled")+'> <b>-</b>'+
+    '<input class="score" data-id="'+id+'" data-i="1" inputmode="numeric" maxlength="2" value="'+(s[1]||"")+'" '+(ready?"":"disabled")+'>'+
+    '</div><div class="'+(done?"ok":"wait")+'">'+(done?"✓ Resultado lançado":ready?"Introduzir resultado":"A aguardar resultados anteriores")+'</div>';
+   col.appendChild(el);
+  });board.appendChild(col);
+ });
+ document.querySelectorAll(".score").forEach(i=>{
+   i.addEventListener("input",()=>{
+     i.value=i.value.replace(/\D/g,"").slice(0,2);
+     // Guarda imediatamente, mas só avança de fase quando os DOIS resultados estiverem preenchidos.
+     saveOne(i.dataset.id,+i.dataset.i,i.value);
+   });
+ });
+}
+
+function saveOne(id,i,v){
+ scores[id]=scores[id]||["",""];
+ scores[id][i]=String(v).replace(/\D/g,"").slice(0,2);
+ persist();
+ if(sc(id)){
+   const active=document.activeElement;
+   renderAll();
+   // Se o resultado acabou de ser completado, manter o utilizador na mesma zona.
+   if(active && active.dataset && active.dataset.id===id){
+     const next=document.querySelector('.score[data-id="'+id+'"][data-i="'+i+'"]');
+     if(next){next.focus();next.select();}
+   }
+ } else {
+   renderGroups();
+ }
+}
+
+function renderGroups(){
+ [["A","ga"],["B","gb"]].forEach(([g,id])=>{
+  let r=group(g);
+  document.getElementById(id).innerHTML=r.map(x=>'<tr><td>'+esc(formatTeam(x.name))+'</td><td>'+x.w+'</td><td>'+x.d+'</td><td>'+x.p+'</td><td>'+x.m+'</td></tr>').join("");
+ });
+}
+
+function pair(id){
+ let w=win(id);if(!w)return null;let m=byId(id);
+ return {win:team(m[w]),lose:team(m[w==="a"?"b":"a"])};
+}
+function finalRanking(){
+ let out=new Array(8).fill("A aguardar"),f=pair("m18"),p34=pair("m15"),p56=pair("m19"),p78=pair("m20");
+ if(f){out[0]=f.win;out[1]=f.lose}
+ if(p34){out[2]=p34.win;out[3]=p34.lose}
+ if(p56){out[4]=p56.win;out[5]=p56.lose}
+ if(p78){out[6]=p78.win;out[7]=p78.lose}
+ return out;
+}
+function renderFinal(){
+ let r=finalRanking();document.getElementById("fl").innerHTML=r.map((x,i)=>
+ '<div class="pos '+(i===0?"champion":"")+'"><div class="num">'+(i===0?"🥇":i===1?"🥈":(i+1)+"º")+'</div><div class="fn">'+esc(formatTeam(x))+'</div>'+(i===0?'<div class="championLabel">CAMPEÃO</div>':'')+'</div>').join("");
+}
+function renderProgress(){
+ const doneGroups=[...Array(12)].filter((_,i)=>!!sc("m"+(i+1))).length;
+ const sf=[sc("m13"),sc("m14")].filter(Boolean).length;
+ const later=[sc("m15"),sc("m16"),sc("m17"),sc("m18"),sc("m19"),sc("m20")].filter(Boolean).length;
+ let text="Fase de grupos: "+doneGroups+"/12";
+ if(doneGroups===12) text+="  •  Meias-finais prontas";
+ if(sf===2) text+="  •  Última fase pronta (final + classificação)";
+ if(later===6) text+="  •  Torneio terminado";
+ document.getElementById("progress").textContent=text;
+}
+
+function recalcPlayerStats(){
+ const stats={};
+ Object.keys(players).forEach(k=>stats[k]={wins:0});
+
+ // Só conta uma vitória individual quando o jogador pertence à equipa
+ // que vence a FINAL do Mix e fica em 1.º lugar.
+ const finalWin=win("m18");
+ if(finalWin){
+   const m=byId("m18");
+   const champions=splitPlayers(team(m[finalWin]));
+   champions.forEach(n=>{
+     const k=normName(n);
+     if(Object.prototype.hasOwnProperty.call(players,k)) stats[k].wins++;
+   });
+ }
+ return stats;
+}
+function renderPlayers(){
+ const q=normName(document.getElementById("playerSearch").value);
+ const stats=recalcPlayerStats();
+ const list=Object.values(players).filter(p=>!q||normName(p.name).includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+ if(!list.length){
+   document.getElementById("playerTableWrap").innerHTML='<div class="note" style="margin-top:10px">Ainda não há jogadores na base de dados.</div>';
+   return;
+ }
+ document.getElementById("playerTableWrap").innerHTML=
+ '<table class="playerTable"><thead><tr><th>Jogador</th><th>Nível</th><th>Mix 1.º Lugar</th><th></th></tr></thead><tbody>'+
+ list.map(p=>{
+   const st=stats[normName(p.name)]||{wins:0};
+   return '<tr><td><b>'+esc(p.name)+'</b></td>'+
+     '<td><select class="playerLevel" data-player="'+esc(normName(p.name))+'">'+
+     ["M1","M2","M3","M4","M5","F1","F2","F3","F4","F5","Outro"].map(l=>'<option '+(p.level===l?"selected":"")+'>'+l+'</option>').join("")+     '</select></td>'+     '<td class="playerWin">'+st.wins+' W</td>'+     '<td class="playerActions"><button data-edit="'+esc(normName(p.name))+'">Editar nome</button> <button data-delete="'+esc(normName(p.name))+'">Apagar</button></td></tr>'; }).join("")+ '</tbody></table>';
+ document.querySelectorAll(".playerLevel").forEach(s=>{
+   s.addEventListener("change",()=>{
+     const k=s.dataset.player;
+     if(players[k]){players[k].level=s.value;persist();renderAll();}
+   });
+ });
+ document.querySelectorAll("[data-edit]").forEach(b=>{
+   b.addEventListener("click",async()=>{
+     const oldKey=b.dataset.edit;
+     if(!players[oldKey]) return;
+     const oldName=players[oldKey].name;
+     const newName=prompt("Alterar nome do jogador:",oldName);
+     if(newName===null) return;
+     const cleanName=newName.trim().replace(/\s+/g," ");
+     if(!cleanName) return alert("O nome não pode ficar vazio.");
+     const newKey=normName(cleanName);
+     if(newKey!==oldKey && players[newKey]) return alert("Já existe um jogador com esse nome na Base de Dados.");
+
+     // Atualiza também as equipas já inscritas no torneio.
+     teams=teams.map(t=>splitPlayers(t).map(n=>normName(n)===oldKey?cleanName:n).join(" / "));
+
+     const level=players[oldKey].level;
+     const playerId=players[oldKey].id||null;
+     delete players[oldKey];
+     players[newKey]={name:cleanName,level,id:playerId};
+     persist();
+     renderAll();
+     await syncOnePlayer(newKey);
+   });
+ });
+ document.querySelectorAll("[data-delete]").forEach(b=>{
+   b.addEventListener("click",()=>{
+     const k=b.dataset.delete;
+     if(confirm("Apagar "+players[k].name+" da base de dados?")){
+       delete players[k];persist();renderAll();
+     }
+   });
+ });
+}
+function renderMatchPreview(){
+ const box=document.getElementById("matchPreview");
+ const list=parse(document.getElementById("wa").value);
+ if(!list.length){box.innerHTML="";return;}
+ const rows=list.map((t,i)=>{
+   const resolved=splitPlayers(t).map(n=>playerInfo(n));
+   const text=resolved.map(p=>esc(p.name)+" ("+esc(p.level)+")").join(" / ");
+   const ambiguous=resolved.some(p=>p.level==="Sem nível");
+   return "<div style='margin-top:4px'><b>"+(i+1)+".</b> "+text+
+          (ambiguous?" <span style='color:#b00020'>⚠ não está na Base de Dados — não conta W</span>":" ✓")+
+          "</div>";
+ }).join("");
+ box.innerHTML="<b>Pré-visualização:</b>"+rows;
+}
+function renderTeams(){document.getElementById("teams").innerHTML=teams.map((x,i)=>'<div class="team"><b>'+(i+1)+'.</b> '+esc(x)+'</div>').join("")}
+function renderAll(){renderTeams();renderBoard();renderGroups();renderFinal();renderProgress();renderPlayers()}
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+document.getElementById("load").onclick=()=>{
+ let list=parse(document.getElementById("wa").value);
+ if(list.length!==8){
+   document.getElementById("msg").style.color="#b00020";
+   document.getElementById("msg").textContent="Precisamos de 8 equipas. Foram encontradas "+list.length+".";
+   return;
+ }
+
+ // IMPORTANTE: a inscrição nunca cria jogadores na Base de Dados.
+ // Apenas usa os jogadores que já foram cadastrados manualmente.
+ teams=list.map(t=>splitPlayers(t).map(n=>playerInfo(n).name).join(" / "));
+ scores={};
+ persist();
+
+ document.getElementById("msg").style.color="#159a52";
+ document.getElementById("msg").textContent="✓ 8 equipas adicionadas. Jogadores não cadastrados ficam sem nível e não acumulam vitórias.";
+ renderAll();
+ window.scrollTo({top:document.getElementById("board").offsetTop-10,behavior:"smooth"});
+};
+document.getElementById("clear").onclick=()=>{document.getElementById("wa").value="";document.getElementById("msg").textContent=""};
+document.getElementById("reset").onclick=()=>{if(confirm("Apagar todos os resultados?")){scores={};persist();renderAll()}};
+document.getElementById("gamesBtn").onclick=()=>{document.getElementById("games").classList.remove("hidden");document.getElementById("final").classList.add("hidden");document.getElementById("gamesBtn").classList.add("active");document.getElementById("finalBtn").classList.remove("active")};
+document.getElementById("finalBtn").onclick=()=>{document.getElementById("final").scrollIntoView({behavior:"smooth",block:"start"});document.getElementById("finalBtn").classList.add("active");document.getElementById("gamesBtn").classList.remove("active")};
+
+
+document.getElementById("addPlayer").onclick=async()=>{
+ const name=document.getElementById("playerName").value.trim();
+ const level=document.getElementById("playerLevel").value;
+ if(!name){alert("Introduz o nome do jogador.");return;}
+ const k=normName(name);
+ players[k]={name:name,level:level};
+ persist();
+ document.getElementById("playerName").value="";
+ renderAll();
+ await syncOnePlayer(k);
+};
+document.getElementById("playerSearch").addEventListener("input",renderPlayers);
+document.getElementById("wa").addEventListener("input",renderMatchPreview);
+
+document.getElementById("wa").value=teams.map((x,i)=>(i+1)+"-🎾 "+x).join("\n");
+renderAll();
+renderMatchPreview();
+loadPlayersFromSupabase().then(()=>syncAllPlayers());
+</script>
+</body>
+</html>

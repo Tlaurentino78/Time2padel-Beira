@@ -62,9 +62,15 @@ th{background:#f0f2f4;padding:9px;font-size:13px;position:sticky;top:0;z-index:3
 <span class="free">Disponível</span><span class="res">Reserva</span><span class="game">Jogo</span><span class="class">Aula</span><span class="mix">Mix</span>
 </div>
 <div class="card"><div class="scroll">
-<table><thead><tr><th>Hora</th><script>
-document.write(courts.map(c=>`<th>${c}</th>`).join(''));
-</script></tr></thead><tbody id="body"></tbody></table>
+<table><thead><tr>
+<th>Hora</th>
+<th>Visioluz</th>
+<th>Mozfert</th>
+<th>Orangefreight</th>
+<th>Lenmed-MSS</th>
+<th>Ferragens Chiveve</th>
+<th>Academia Time2Padel</th>
+</tr></thead><tbody id="body"></tbody></table>
 </div></div>
 <div class="note">Intervalos de 30 minutos, das 07:00 às 23:00. Toca num horário disponível para criar o evento. A lista de jogadores é separada da base dos Mixes.</div>
 </div>
@@ -89,6 +95,11 @@ document.write(courts.map(c=>`<th>${c}</th>`).join(''));
 <script>
 const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
 const courts=["Visioluz","Mozfert","Orangefreight","Lenmed-MSS","Ferragens Chiveve","Academia Time2Padel"];
+const times=[]; for(let m=7*60;m<=23*60;m+=30){const hh=String(Math.floor(m/60)).padStart(2,"0"),mm=String(m%60).padStart(2,"0");times.push(`${hh}:${mm}`);}
+const times=[];
+for(let m=7*60;m<=23*60;m+=30){
+  times.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
+}
 const date=document.getElementById("date");const player=document.getElementById("player");const suggestions=document.getElementById("suggestions");
 let players=[],selectedType="Reserva",current=null;
 function localDate(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}date.value=localDate();
@@ -139,7 +150,7 @@ async function restoreSession(){
 
 async function loadPlayers(){
  try{
-   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&order=nome.asc',{headers:authHeaders()});
+   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&estado=eq.Aprovado&order=nome.asc',{headers:authHeaders()});
    if(r.ok)players=await r.json();
  }catch(e){players=[]}
 }
@@ -173,7 +184,7 @@ player.addEventListener("input",async()=>{
  player.dataset.playerId="";
  if(!q)return;
  if(!players.length) await loadPlayers();
- const matches=players.filter(p=>p.nome.toLowerCase().includes(q)).slice(0,8);
+ const matches=players.filter(p=>p.estado==='Aprovado' && p.nome.toLowerCase().includes(q)).slice(0,8);
  if(!matches.length){
    const d=document.createElement("div");d.textContent="Nenhum jogador aprovado encontrado.";d.style.color="#777";suggestions.appendChild(d);return;
  }

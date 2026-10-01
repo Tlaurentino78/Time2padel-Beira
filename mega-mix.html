@@ -1,47 +1,324 @@
-<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time2Padel — Mega Mix Online</title>
-<style>:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}.wrap{max-width:1200px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:12px 14px;font-size:19px;font-weight:800}.body{padding:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-weight:800;margin-bottom:5px}.field input,.field select,textarea{width:100%;border:1px solid #aaa;border-radius:7px;padding:10px;font-size:16px}.field input,.field select{height:44px}textarea{min-height:170px}.btn{padding:10px 14px;border:1px solid #aaa;background:#fff;border-radius:7px;font-weight:800}.green{background:var(--g);border-color:var(--g);color:#fff}.msg{margin-top:8px;font-weight:700}.err{color:#b00020}.ok{color:#159a52}.muted{font-size:12px;color:#777;margin-top:6px}.hidden{display:none}.courts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.courtOpt{border:2px solid #ddd;border-radius:8px;padding:10px;font-weight:800}.courtOpt.selected{border-color:var(--g);background:#effff5}.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:5px;background:#ddd;overflow-x:auto}.court{background:#fff}.ct{background:var(--g);color:#fff;text-align:center;padding:10px;font-weight:800}.match{padding:9px 5px;border-bottom:1px solid #eee;text-align:center;min-height:150px}.round{font-size:11px;color:#777}.names{font-weight:800;line-height:1.3;margin:7px 0}.scores{display:flex;justify-content:center;align-items:center;gap:6px}.score{width:45px;height:38px;border:2px solid #aaa;border-radius:7px;text-align:center;font-size:20px;font-weight:800}.done{font-size:10px;color:#159a52;margin-top:4px;font-weight:800}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}th:first-child,td:first-child{text-align:left}.pill{display:inline-block;padding:3px 7px;border-radius:12px;background:#eee;font-size:11px;margin-left:4px}.pill.ok{background:#e8fff1}.pill.warn{background:#fff3cd;color:#8a6100}.row{display:flex;gap:7px;flex-wrap:wrap}.summaryWrap{overflow-x:auto}.summary{min-width:900px}.finalTable{min-width:900px}.saveBox{background:#f7fff9;border:2px solid var(--g);border-radius:10px;padding:14px}.saveTitle{font-size:18px;font-weight:900}.saveMeta{color:#555;margin:5px 0 10px}.gold{background:#fff8d8;border-left:6px solid #f2c300}.silver{background:#f3f5f7}.bronze{background:#fff0e4}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;padding:18px;overflow:auto}.modalBox{max-width:760px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden}.modalHead{background:var(--g);color:#fff;padding:14px;font-size:19px;font-weight:900;display:flex;justify-content:space-between;align-items:center}.xbtn{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:50%;font-size:24px;width:38px;height:38px}.oldRow{border:1px solid #ddd;border-radius:9px;padding:10px;margin-top:8px}.oldMain{font-weight:900}.oldBtns{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}.danger{background:#fff0f0;border-color:#d33;color:#b00020}.storyBtn{margin-top:10px;width:100%;font-size:16px}.storyHint{font-size:12px;color:#666;margin-top:6px}@media(max-width:800px){.grid,.courts{grid-template-columns:1fr}.board{grid-template-columns:repeat(4,minmax(190px,1fr));overflow-x:auto}.match{min-height:135px}.names{font-size:12px}.score{width:40px;height:35px;font-size:18px}}
-</style></head><body><header><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span>Time2Padel 🏆 — Mega Mix Online</span><a href="index.html" style="background:#fff;color:#222;text-decoration:none;border-radius:7px;padding:9px 12px;font-size:14px;font-weight:800;white-space:nowrap">← Painel Administrador</a></div></header><div class="wrap">
-<div id="loginCard" class="card"><div class="head">🔐 Administrador</div><div class="body"><div class="grid"><div class="field"><label>Email</label><input id="email" type="email" value="tiago@visioluz.com"></div><div class="field"><label>Password</label><input id="password" type="password"></div></div><button class="btn green" id="login" style="margin-top:10px;width:100%">Entrar</button><div id="loginMsg" class="msg"></div></div></div>
-<div id="app" class="hidden">
-<div class="card"><div class="head">📋 Novo Mega Mix</div><div class="body"><div class="grid"><div class="field"><label>Nível</label><select id="level"><option>M1</option><option>M2</option><option>M3</option><option selected>M4</option><option>M5</option><option>F1</option><option>F2</option><option>F3</option><option>F4</option><option>F5</option><option>Outro</option></select></div><div class="field"><label>Data</label><input id="date" type="date"></div></div></div></div>
-<div class="card"><div class="head">👥 8 Equipas / Jogadores</div><div class="body"><textarea id="teams" placeholder="1- Nome / Nome\n2- Nome / Nome\n3- Nome / Nome\n4- Nome / Nome\n5- Nome / Nome\n6- Nome / Nome\n7- Nome / Nome\n8- Nome / Nome"></textarea><div class="muted">Jogadores existentes são reconhecidos pela Base de Dados. Desconhecidos ficam como Sem nível e não entram no ranking.</div><div class="muted">A Base de Dados de Jogadores é gerida na página própria. Aqui é apenas consultada automaticamente.</div><div id="preview"></div></div></div>
-<div class="card"><div class="head">🏟️ Escolher os 4 campos</div><div class="body"><div id="fieldChoices" class="courts"></div><div class="muted">Escolhe 4 dos 6 campos disponíveis. A ordem escolhida define Campo 1 → Campo 4.</div></div></div>
-<div class="card"><div class="head">☁️ Mega Mix guardado online</div><div class="body"><div class="row"><button class="btn green" id="newMix">🆕 Criar novo Mega Mix</button><button class="btn" id="oldBtn">📚 Mega Mixes Anteriores</button><button class="btn" id="logout">Sair</button></div><div id="status" class="msg"></div></div></div>
-<div id="oldModal" class="modal hidden"><div class="modalBox"><div class="modalHead">📚 Mega Mixes Anteriores <button class="xbtn" id="closeOld">×</button></div><div class="body"><div class="muted">Cada Mega Mix fica guardado separadamente.</div><div id="oldMixes"></div></div></div></div>
-<div id="gameArea" class="hidden"><div class="card"><div class="body"><button class="btn green" id="openOrder" style="width:100%;font-size:17px">🎾 Abrir Ordem de Jogos</button></div><div class="head">🏆 Ordem de Jogos</div><div class="body"><div id="progress"></div></div><div id="board"></div></div><div class="card"><div class="head">📊 Classificação / Fase de Grupos</div><div class="body" id="ranking"></div></div><div class="card"><div class="head">📋 Todos os Jogos</div><div class="body" id="games"></div></div><div class="card"><div class="head">🏆 Classificação Final</div><div class="body" id="final"></div><div class="body"><button class="btn green storyBtn" id="storyBtn">📸 Criar Story Instagram</button><div class="storyHint">Formato 1080 × 1920 — pronto para partilhar.</div></div></div><div class="card"><div class="body"><div class="saveBox"><div class="saveTitle">💾 Finalizar Mega Mix</div><div class="saveMeta" id="saveMeta">Mega Mix</div><div id="mixStatus" class="pill warn" style="display:inline-block;margin-bottom:10px">Em curso</div><button class="btn green" id="saveMix" style="width:100%;font-size:17px">💾 Guardar / Finalizar Mega Mix</button><div id="saveMsg" class="msg"></div></div></div></div></div>
+<!doctype html>
+<html lang="pt">
+<head>
+<script src="cloud.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Torneio</title>
+<style>
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}
+header{background:var(--dark);color:#fff;padding:14px 16px;font-size:22px;font-weight:800}
+.wrap{max-width:1200px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.head{background:var(--g);color:#fff;padding:12px 14px;font-size:20px;font-weight:800}.body{padding:13px}
+textarea{width:100%;min-height:170px;border:1px solid #aaa;border-radius:8px;padding:10px;font-size:16px}
+button{padding:10px 14px;border:1px solid #aaa;background:#fff;border-radius:7px;font-weight:800}
+.green{background:var(--g);border-color:var(--g);color:#fff}.row{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.msg{margin-top:8px;font-weight:700}.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.team{padding:9px;background:#f7f7f7;border:1px solid #ddd;border-radius:7px;font-size:14px}
+.nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.nav button.active{background:var(--g);color:#fff;border-color:var(--g)}
+.board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:0;background:#ccc;border:1px solid #ccc;overflow-x:auto;align-items:stretch}.court{min-width:220px;display:flex;flex-direction:column}.court .match{flex:1 1 0}
+.court{background:#fff}.ct{background:var(--g);color:#fff;text-align:center;padding:10px;font-weight:800}
+.match{height:210px;min-height:210px;border-bottom:1px solid #eee;padding:10px 7px;text-align:center;display:flex;flex-direction:column;align-items:center;overflow:hidden}.round{flex:0 0 auto}.round{font-size:12px;color:#777;margin-bottom:5px}
+.names{font-weight:800;line-height:1.4;min-height:44px}.scores{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:7px}
+.score{width:52px;height:40px;border:2px solid #aaa;border-radius:7px;text-align:center;font-size:21px;font-weight:800}
+.score:focus{outline:2px solid var(--g);border-color:var(--g)}.score:disabled{background:#eee;color:#999}
+.ok{font-size:11px;color:#159a52;margin-top:5px}.wait{font-size:11px;color:#999;margin-top:5px}
+.groups{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.group{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.group h3{margin:0;background:var(--g);color:#fff;padding:10px}table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}th:first-child,td:first-child{text-align:left}
+.final{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}.final h2{margin:0;background:var(--g);color:#fff;padding:12px}
+.pos{display:flex;gap:12px;align-items:center;padding:12px 13px;border-bottom:1px solid #eee}.pos.champion{background:#fff8d8;border-left:6px solid #f2c300}.num{width:42px;text-align:center;font-weight:900;font-size:18px}.fn{font-weight:800}.championLabel{margin-left:auto;color:#b18400;font-weight:900;font-size:12px}
+.hidden{display:none}.note{font-size:12px;color:#777;margin-top:6px}
+@media(max-width:800px){.teams{grid-template-columns:1fr 1fr}.board{overflow-x:auto;grid-template-columns:repeat(4,220px)}.groups{grid-template-columns:1fr}}
+
+.playerAdmin{display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center}
+.playerAdmin input,.playerAdmin select{width:100%;height:42px;border:1px solid #aaa;border-radius:7px;padding:8px;font-size:15px}
+.playerTable{width:100%;border-collapse:collapse;margin-top:12px}
+.playerTable th,.playerTable td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+.playerLevel{border:1px solid #aaa;border-radius:6px;padding:6px}
+.playerWin{font-weight:900;color:#159a52}
+.playerActions button{padding:6px 9px;font-size:12px}
+.playerSearch{width:100%;height:40px;border:1px solid #aaa;border-radius:7px;padding:8px;margin-top:10px}
+@media(max-width:650px){.playerAdmin{grid-template-columns:1fr 110px}.playerAdmin button{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header>Time2Padel 🏆 — Mega Mix</header><nav class="topnav"><a href="index.html">🏠 Início</a><a href="jogadores.html">👤 Jogadores</a><a href="mega-mix.html">🏆 Mega Mix</a><a href="mix6.html">🎾 Mix 6</a><a href="mix4.html">🎾 Mix 4</a><a href="publico.html">📣 Resultados Públicos</a></nav>
+<div class="wrap"><div class="hero"><h1>🏆 Mega Mix Time2Padel</h1><p>8 equipas · 4 campos · 20 jogos · 5 jogos por equipa.</p><div class="row"><button class="green" id="publish">📣 PUBLICAR RESULTADOS</button><a href="publico.html" style="padding:10px 14px;border:1px solid #aaa;border-radius:7px;text-decoration:none;color:#222;font-weight:800;background:#fff">Ver página pública</a></div><div id="pubmsg" class="msg"></div></div>
+
+<div class="card">
+<div class="head">👥 Inscrições pelo WhatsApp</div>
+<div class="body">
+<textarea id="wa" placeholder="1-🎾 Greg/Rishil
+2-🎾 Humza/Ismail
+3-🎾 Saad / Shani
+4-🎾 Mercia / Miguel F
+5-🎾 Qadir / Ossama
+6-🎾 Naushad / Darren
+7-🎾 Jan / Tiago
+8-🎾 Rahul / Dylan"></textarea>
+<div class="row"><button class="green" id="load">✓ ADICIONAR 8 EQUIPAS</button><button id="clear">Limpar</button></div>
+<div id="msg" class="msg"></div>
+<div id="matchPreview" class="note" style="margin-top:8px"></div>
 </div></div>
+
+<div class="card"><div class="head">🏆 Equipas</div><div class="body"><div id="teams" class="teams"></div></div></div>
+
+<div class="nav">
+<button class="active" id="gamesBtn">ORDEM DE JOGOS</button>
+<button id="finalBtn">CLASSIFICAÇÃO FINAL</button>
+</div>
+
+<div id="games">
+<div class="card" style="margin-bottom:10px"><div class="body" id="progress" style="font-weight:700"></div></div>
+<div class="board" id="board"></div>
+<div class="groups">
+<div class="group"><h3>Grupo A</h3><table><thead><tr><th>Equipa</th><th>V</th><th>D</th><th>J+</th><th>J−</th></tr></thead><tbody id="ga"></tbody></table></div>
+<div class="group"><h3>Grupo B</h3><table><thead><tr><th>Equipa</th><th>V</th><th>D</th><th>J+</th><th>J−</th></tr></thead><tbody id="gb"></tbody></table></div>
+</div></div>
+
+<div id="final"><div class="final"><h2>🏆 CLASSIFICAÇÃO FINAL — 1.º AO 8.º</h2><div id="fl"></div></div></div>
+
+<div class="card" style="margin-top:12px"><div class="body">
+<button id="reset">Apagar resultados</button><div class="note">Os resultados ficam guardados neste navegador.</div>
+</div></div>
+</div>
+
 <script>
-const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';const FIELDS=['Visioluz','Mozfert','Orangefreight','Lenmed/MSS','F Chiveve','Time2padel'];let token=localStorage.getItem('t2p_access')||'',players=[],current=null,teams=[],matches=[],selectedFields=[];let ensureRunning=false;const $=id=>document.getElementById(id);const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
-async function api(path,opt={}){const h={apikey:KEY,'Content-Type':'application/json',...(opt.headers||{})};if(token)h.Authorization='Bearer '+token;const r=await fetch(SB+path,{...opt,headers:h});const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch(e){d=t}if(!r.ok)throw Error(d?.message||d?.error_description||String(d)||('HTTP '+r.status));return d}
-function renderFields(){ $('fieldChoices').innerHTML=FIELDS.map(f=>`<label class="courtOpt ${selectedFields.includes(f)?'selected':''}"><input type="checkbox" data-f="${esc(f)}" ${selectedFields.includes(f)?'checked':''}> ${esc(f)}</label>`).join('');document.querySelectorAll('[data-f]').forEach(x=>x.onchange=()=>{if(x.checked){if(selectedFields.length>=4){x.checked=false;return}selectedFields.push(x.dataset.f)}else selectedFields=selectedFields.filter(f=>f!==x.dataset.f);renderFields()})}
-function parseTeams(v){return v.split(/\r?\n/).map(x=>x.replace(/^\s*\d+\s*[-.)]\s*/,'').trim()).filter(Boolean).slice(0,8)}function splitPlayers(t){return String(t||'').split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2)}
-function findPlayer(q){const n=norm(q);let a=players.filter(p=>norm(p.nome)===n);if(a.length===1)return a[0];a=players.filter(p=>{const s=norm(p.nome);return s.startsWith(n)||s.includes(n)||n.startsWith(s)});if(a.length===1)return a[0];const toks=n.split(' ').filter(Boolean);a=players.filter(p=>{const s=norm(p.nome).split(' ');return toks.every(t=>s.some(z=>z.startsWith(t)))});return a.length===1?a[0]:null}
-function preview(){const raw=parseTeams($('teams').value);$('preview').innerHTML=raw.map((t,i)=>'<div><b>Equipa '+(i+1)+':</b> '+splitPlayers(t).map(n=>{const p=findPlayer(n);return esc(p?.nome||n)+' <span class="pill '+(p?'ok':'warn')+'">'+esc(p?.nivel||'Sem nível')+'</span>'}).join(' + ')+'</div>').join('')}
-function groupStandings(){const st=teams.map((t,i)=>({i,pts:0,w:0,l:0,gf:0,ga:0,diff:0,played:0}));matches.filter(m=>m.fase==='Grupo'&&m.estado==='finalizado'&&m.score_a!=null&&m.score_b!=null).forEach(m=>{const ia=teams.findIndex(t=>t.id===m.equipa_a_id),ib=teams.findIndex(t=>t.id===m.equipa_b_id);if(ia<0||ib<0)return;const a=+m.score_a,b=+m.score_b;st[ia].gf+=a;st[ia].ga+=b;st[ib].gf+=b;st[ib].ga+=a;st[ia].played++;st[ib].played++;if(a>b){st[ia].pts+=3;st[ia].w++;st[ib].l++}else if(b>a){st[ib].pts+=3;st[ib].w++;st[ia].l++}else{st[ia].pts++;st[ib].pts++}});st.forEach(x=>x.diff=x.gf-x.ga);return st}
-function sortedGroup(indices){const st=groupStandings().filter(x=>indices.includes(x.i));return st.sort((a,b)=>b.pts-a.pts||b.diff-a.diff||b.gf-a.gf||b.w-a.w)}
-function scoreBetween(ia,ib){const m=matches.find(m=>m.fase==='Grupo'&&((m.equipa_a_id===teams[ia]?.id&&m.equipa_b_id===teams[ib]?.id)||(m.equipa_a_id===teams[ib]?.id&&m.equipa_b_id===teams[ia]?.id)));if(!m||m.estado!=='finalizado'||m.score_a==null||m.score_b==null)return '—';return m.equipa_a_id===teams[ia].id?`${m.score_a}-${m.score_b}`:`${m.score_b}-${m.score_a}`}
-function renderRanking(){const ga=sortedGroup([0,1,2,3]),gb=sortedGroup([4,5,6,7]);const tab=(arr)=>'<table><tr><th>Pos.</th><th>Equipa</th><th>Pts</th><th>V</th><th>J+</th><th>J−</th><th>Dif.</th></tr>'+arr.map((x,i)=>`<tr><td><b>${i+1}º</b></td><td>${esc(teams[x.i].nome)}</td><td>${x.pts}</td><td>${x.w}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.diff}</td></tr>`).join('')+'</table>';const done=matches.filter(m=>m.fase==='Grupo'&&m.estado==='finalizado').length;$('ranking').innerHTML='<h3 style="margin-top:0">Grupo A</h3>'+tab(ga)+'<h3>Grupo B</h3>'+tab(gb);$('progress').textContent=`Jogos de grupos: ${done}/12`}
-function renderBoard(){const cols=[[],[],[],[]];matches.forEach(m=>{const ia=teams.findIndex(t=>t.id===m.equipa_a_id),ib=teams.findIndex(t=>t.id===m.equipa_b_id),c=(m.campo||1)-1;const rn=m.ordem<=4?1:m.ordem<=8?2:m.ordem<=12?3:m.ordem<=16?4:5;cols[c].push(`<div class="match"><div class="round">Ronda ${rn} · ${esc(m.fase||'')}</div><div class="names">${esc(teams[ia]?.nome||'')}<br>vs<br>${esc(teams[ib]?.nome||'')}</div><div class="scores"><input class="score" data-id="${m.id}" data-s="a" value="${m.score_a??''}" inputmode="numeric" maxlength="2"><b>-</b><input class="score" data-id="${m.id}" data-s="b" value="${m.score_b??''}" inputmode="numeric" maxlength="2"></div>${m.estado==='finalizado'?'<div class="done">✓ Resultado guardado</div>':''}</div>`)});$('board').innerHTML='<div class="board">'+cols.map((c,i)=>`<div class="court"><div class="ct">${esc(selectedFields[i]||'Campo '+(i+1))}</div>${c.join('')}</div>`).join('')+'</div>';document.querySelectorAll('.score').forEach(x=>{x.oninput=()=>queueScore(x.dataset.id,x.dataset.s,x.value);x.onchange=()=>queueScore(x.dataset.id,x.dataset.s,x.value,true)})}
-function renderGames(){$('games').innerHTML='<table><tr><th>Ronda</th><th>Campo</th><th>Fase</th><th>Equipa A</th><th>Equipa B</th><th>Resultado</th></tr>'+matches.map(m=>`<tr><td>${Math.ceil(m.ordem/4)}</td><td>${esc(selectedFields[(m.campo||1)-1]||'')}</td><td>${esc(m.fase)}</td><td>${esc(teams.find(t=>t.id===m.equipa_a_id)?.nome||'')}</td><td>${esc(teams.find(t=>t.id===m.equipa_b_id)?.nome||'')}</td><td><b>${m.score_a??'—'} - ${m.score_b??'—'}</b></td></tr>`).join('')+'</table>'}
-const scoreTimers={};function queueScore(id,side,val,immediate=false){val=String(val).replace(/\D/g,'').slice(0,2);const m=matches.find(x=>x.id===id);if(!m)return;clearTimeout(scoreTimers[id+'_'+side]);m[side==='a'?'score_a':'score_b']=val===''?null:+val;const other=side==='a'?m.score_b:m.score_a;m.estado=(val!==''&&other!=null)?'finalizado':'pendente';if(immediate){saveScore(id,side,val);return}scoreTimers[id+'_'+side]=setTimeout(()=>saveScore(id,side,val),500)}
-async function saveScore(id,side,val){val=String(val).replace(/\D/g,'').slice(0,2);const m=matches.find(x=>x.id===id);if(!m)return;const body={};body[side==='a'?'score_a':'score_b']=val===''?null:+val;const other=side==='a'?m.score_b:m.score_a;const nowFinal=(val!==''&&other!=null);body.estado=nowFinal?'finalizado':'pendente';try{await api('/rest/v1/jogos?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});m.syncOk=true;m.estado=body.estado;if(nowFinal){await ensurePlayoffs()}else if(nowFinal){const el=document.querySelector('.score[data-id="'+id+'"][data-s="'+side+'"]');if(el){const wrap=el.closest('.match');if(wrap&&!wrap.querySelector('.done')){const d=document.createElement('div');d.className='done';d.textContent='✓ Resultado guardado';wrap.appendChild(d)}}}}catch(e){m.syncOk=false;$('status').innerHTML='<span class="err">Erro ao guardar resultado: '+esc(e.message)+'</span>'}}
-async function postGame(a,b,fase,ordem,campo){const existing=matches.find(m=>m.fase===fase&&m.ordem===ordem&&m.campo===campo);if(existing)return existing;const d=(await api('/rest/v1/jogos',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({torneio_id:current.id,equipa_a_id:teams[a].id,equipa_b_id:teams[b].id,fase,ordem,campo,estado:'pendente',score_a:null,score_b:null})}))[0];matches.push(d);return d}
-async function postByIds(aId,bId,fase,ordem,campo){const existing=matches.find(m=>m.fase===fase&&m.ordem===ordem&&m.campo===campo);if(existing)return existing;const d=(await api('/rest/v1/jogos',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({torneio_id:current.id,equipa_a_id:aId,equipa_b_id:bId,fase,ordem,campo,estado:'pendente',score_a:null,score_b:null})}))[0];matches.push(d);return d}
-async function dedupeGeneratedGames(){const generated=matches.filter(m=>m.fase!=='Grupo');const seen=new Map();const remove=[];for(const m of generated){const key=`${m.fase}|${m.ordem}|${m.campo}`;const prev=seen.get(key);if(!prev){seen.set(key,m);continue}const mScored=m.estado==='finalizado'&&m.score_a!=null&&m.score_b!=null;const pScored=prev.estado==='finalizado'&&prev.score_a!=null&&prev.score_b!=null;if(mScored&&!pScored){remove.push(prev);seen.set(key,m)}else{remove.push(m)}}for(const m of remove){try{await api('/rest/v1/jogos?id=eq.'+m.id,{method:'DELETE'});matches=matches.filter(x=>x.id!==m.id)}catch(e){}}}
-async function ensurePlayoffs(){if(!current||ensureRunning)return;ensureRunning=true;try{await dedupeGeneratedGames();const groups=matches.filter(m=>m.fase==='Grupo');if(groups.length<12||groups.some(m=>m.estado!=='finalizado'))return;const ga=sortedGroup([0,1,2,3]),gb=sortedGroup([4,5,6,7]);await postGame(ga[0].i,gb[1].i,'MEIAS',13,1);await postGame(gb[0].i,ga[1].i,'MEIAS',14,2);await postGame(ga[2].i,gb[2].i,'5º–8º',15,3);await postGame(ga[3].i,gb[3].i,'5º–8º',16,4);renderBoard();renderGames();renderFinal();const sf=matches.filter(m=>m.fase==='MEIAS');if(sf.length===2&&sf.every(m=>m.estado==='finalizado')){const winners=sf.map(m=>+m.score_a>+m.score_b?m.equipa_a_id:m.equipa_b_id),losers=sf.map(m=>+m.score_a>+m.score_b?m.equipa_b_id:m.equipa_a_id);await postByIds(winners[0],winners[1],'FINAL',17,1);await postByIds(losers[0],losers[1],'3º/4º',18,2)}const fifth=matches.filter(m=>m.fase==='5º–8º');if(fifth.length===2&&fifth.every(m=>m.estado==='finalizado')){const w1=fifth[0].score_a>fifth[0].score_b?fifth[0].equipa_a_id:fifth[0].equipa_b_id;const w2=fifth[1].score_a>fifth[1].score_b?fifth[1].equipa_a_id:fifth[1].equipa_b_id;const l1=w1===fifth[0].equipa_a_id?fifth[0].equipa_b_id:fifth[0].equipa_a_id;const l2=w2===fifth[1].equipa_a_id?fifth[1].equipa_b_id:fifth[1].equipa_a_id;await postByIds(w1,w2,'5º/6º',19,3);await postByIds(l1,l2,'7º/8º',20,4)}renderBoard();renderGames();renderFinal()}finally{ensureRunning=false}}
-function finalRanking(){const out=new Array(8).fill(null);const set=(fase,p1,p2)=>{const m=matches.find(x=>x.fase===fase);if(!m||m.estado!=='finalizado')return;const win=+m.score_a>+m.score_b?m.equipa_a_id:m.equipa_b_id;const lose=win===m.equipa_a_id?m.equipa_b_id:m.equipa_a_id;out[p1-1]=teams.findIndex(t=>t.id===win);out[p2-1]=teams.findIndex(t=>t.id===lose)};set('FINAL',1,2);set('3º/4º',3,4);set('5º/6º',5,6);set('7º/8º',7,8);return out}
-function renderFinal(){const r=finalRanking();let h='<div class="summaryWrap"><table class="finalTable"><tr><th>Pos.</th><th>Equipa / Jogadores</th><th>Resultado</th></tr>';for(let i=0;i<8;i++){const ti=r[i];h+=`<tr class="${i===0?'gold':i===1?'silver':i===2?'bronze':''}"><td><b>${i+1}º</b></td><td>${ti==null?'A aguardar':`<b>${esc(teams[ti].nome)}</b>`}</td><td>${i===0&&ti!=null?'🏆 CAMPEÃO':''}</td></tr>`}h+='</table></div>';$('final').innerHTML=h;updateSaveMeta()}
-function updateSaveMeta(){if($('saveMeta')&&current){const d=$('date').value?$('date').value.split('-').reverse().join('/'):(current.data_torneio||'').split('-').reverse().join('/');$('saveMeta').textContent=`Mega Mix — ${$('level').value} — ${d}`}}
-function updateMixStatus(){if(!$('mixStatus')||!current)return;const done=!!current.publicado;$('mixStatus').textContent=done?'Concluído':'Em curso';$('mixStatus').className='pill '+(done?'ok':'warn');$('saveMix').textContent=done?'✓ Mega Mix Concluído':'💾 Guardar / Finalizar Mega Mix';$('saveMix').disabled=done}
-async function saveMix(){if(!current)return;if(current.publicado){$('saveMsg').innerHTML='<span class="ok">✓ Este Mega Mix já está concluído.</span>';return}await ensurePlayoffs();const pending=matches.filter(m=>m.estado!=='finalizado'||m.score_a==null||m.score_b==null);if(pending.length){$('saveMsg').innerHTML='<span class="err">Ainda faltam '+pending.length+' jogo(s). Preenche todos os 20 resultados antes de finalizar.</span>';return}try{const d=(await api('/rest/v1/torneios?id=eq.'+current.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({publicado:true,updated_at:new Date().toISOString()})}))[0]||{};current={...current,...d,publicado:true};updateMixStatus();$('saveMsg').innerHTML='<span class="ok">✓ Mega Mix finalizado e guardado. Agora conta para histórico/ranking.</span>';await loadOldMixes()}catch(e){$('saveMsg').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
-function createStory(){const r=finalRanking();if(r.some(x=>x==null))return alert('A classificação final ainda não está completa.');const c=document.createElement('canvas');c.width=1080;c.height=1920;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#20cf68';x.fillRect(0,0,c.width,170);x.fillStyle='#fff';x.textAlign='center';x.font='bold 70px Arial';x.fillText('Time2Padel Beira',540,110);x.fillStyle='#303030';x.font='bold 58px Arial';x.fillText('MEGA MIX',540,270);x.font='bold 42px Arial';x.fillText(($('level').value||'')+'  •  '+($('date').value||'').split('-').reverse().join('/'),540,350);x.font='bold 42px Arial';x.fillText('🏆 CLASSIFICAÇÃO FINAL',540,445);const ys=[650,850,1050,1250,1410,1550,1690,1830];r.forEach((ti,i)=>{const y=ys[i];x.fillStyle=i===0?'#fff3b0':'#fff';x.fillRect(55,y-65,970,115);x.fillStyle='#303030';x.textAlign='left';x.font=i===0?'bold 54px Arial':'bold 40px Arial';x.fillText((i+1)+'º',90,y);x.textAlign='center';let name=teams[ti].nome;if(name.length>32)name=name.slice(0,32)+'…';x.fillText(name,570,y);if(i===0){x.fillStyle='#c79a00';x.font='bold 30px Arial';x.fillText('🏆 CAMPEÃO',540,y+43)}});const w=window.open('','_blank');if(w){w.document.write('<title>Story Time2Padel</title><body style="margin:0;background:#111;display:flex;justify-content:center"><img style="max-width:100vw;max-height:100vh" src="'+c.toDataURL('image/png')+'"></body>');w.document.close()}else location.href=c.toDataURL('image/png')}
-async function loadPlayers(){players=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc')}
-function tellDeleteMessage(id,xs){const t=xs.find(x=>x.id===id);return t&&!t.publicado?'Abandonar este Mega Mix em curso?\n\nEle será apagado com os seus jogos/equipas e não aparecerá mais no histórico.\n\nContinuar?':'Apagar este Mega Mix e todos os seus jogos/equipas? Esta ação não pode ser desfeita.'}
-async function deleteTournament(id){const eq=await api('/rest/v1/equipas?torneio_id=eq.'+id+'&select=id');await api('/rest/v1/publicacoes?torneio_id=eq.'+id,{method:'DELETE'});await api('/rest/v1/jogos?torneio_id=eq.'+id,{method:'DELETE'});for(const e of eq)await api('/rest/v1/equipa_jogadores?equipa_id=eq.'+e.id,{method:'DELETE'});await api('/rest/v1/equipas?torneio_id=eq.'+id,{method:'DELETE'});await api('/rest/v1/torneios?id=eq.'+id,{method:'DELETE'})}
-async function loadOldMixes(){try{const xs=await api('/rest/v1/torneios?formato=eq.Mega%20Mix&select=id,nome,nivel,data_torneio,created_at,publicado&order=data_torneio.desc,created_at.desc');const el=$('oldMixes');if(!xs.length){el.innerHTML='<div class="muted" style="margin-top:12px">Ainda não existem Mega Mixes guardados.</div>';return}const order=['M1','M2','M3','M4','M5','F1','F2','F3','F4','F5','Outro','Sem nível'];const rank=n=>{const i=order.indexOf(String(n||'Sem nível'));return i<0?99:i};xs.sort((a,b)=>{const la=rank(a.nivel),lb=rank(b.nivel);if(la!==lb)return la-lb;return String(b.data_torneio||'').localeCompare(String(a.data_torneio||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))});let html='',last=null;for(const t of xs){const level=t.nivel||'Sem nível';if(level!==last){html+=`<div style="margin-top:16px;font-size:17px;font-weight:900;border-bottom:2px solid #20cf68;padding-bottom:6px">🎾 Nível ${esc(level)}</div>`;last=level}const d=t.data_torneio?String(t.data_torneio).split('-').reverse().join('/'):'—';html+=`<div class="oldRow"><div class="oldMain">Mega Mix · ${esc(d)} <span class="pill ${t.publicado?'ok':'warn'}">${t.publicado?'Concluído':'Em curso'}</span></div><div class="muted">${esc(t.nome||'Mega Mix')} · ID ${esc(String(t.id).slice(0,8))}…</div><div class="oldBtns"><button class="btn green" data-open-old="${esc(t.id)}">Abrir Mega Mix</button><button class="btn danger" data-delete-old="${esc(t.id)}">${t.publicado?'🗑 Apagar':'✖ Abandonar'}</button></div></div>`}el.innerHTML=html;document.querySelectorAll('[data-open-old]').forEach(b=>b.onclick=async()=>{try{await loadTournament(b.dataset.openOld);$('oldModal').classList.add('hidden');$('gameArea').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){$('status').innerHTML='<span class="err">'+esc(e.message)+'</span>'}});document.querySelectorAll('[data-delete-old]').forEach(b=>b.onclick=async()=>{if(!confirm(tellDeleteMessage(b.dataset.deleteOld,xs)))return;try{await deleteTournament(b.dataset.deleteOld);if(current?.id===b.dataset.deleteOld){current=null;$('gameArea').classList.add('hidden')}$('status').innerHTML='<span class="ok">✓ Mega Mix apagado.</span>';await loadOldMixes()}catch(e){$('status').innerHTML='<span class="err">'+esc(e.message)+'</span>'}})}catch(e){$('oldMixes').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
-async function loadTournament(id){const t=(await api('/rest/v1/torneios?id=eq.'+id+'&select=*'))[0];if(!t)throw Error('Mega Mix não encontrado.');current=t;teams=await api('/rest/v1/equipas?torneio_id=eq.'+id+'&select=*&order=posicao_inicial.asc');matches=await api('/rest/v1/jogos?torneio_id=eq.'+id+'&select=*&order=ordem.asc');$('level').value=t.nivel||'M4';$('date').value=t.data_torneio||new Date().toISOString().slice(0,10);const p=(t.nome||'').split(' — ');selectedFields=p[3]?p[3].split(' + ').filter(Boolean):[];$('teams').value=teams.map((x,i)=>(i+1)+'- '+x.nome).join('\n');renderFields();preview();$('gameArea').classList.remove('hidden');renderBoard();renderRanking();renderGames();renderFinal();updateMixStatus();updateSaveMeta();await ensurePlayoffs();renderBoard();renderGames();renderFinal();await loadOldMixes()}
-async function newMix(){if(current&&!current.publicado){const ok=confirm('Existe um Mega Mix em curso.\n\nSe avançares para um novo Mega Mix, o anterior será ABANDONADO e apagado do histórico.\n\nContinuar?');if(!ok)return;try{await deleteTournament(current.id);current=null;teams=[];matches=[]}catch(e){return $('status').innerHTML='<span class="err">Não foi possível abandonar o Mega Mix anterior: '+esc(e.message)+'</span>'}}if(selectedFields.length!==4)return $('status').innerHTML='<span class="err">Escolhe exatamente 4 campos.</span>';const raw=parseTeams($('teams').value);if(raw.length!==8)return $('status').innerHTML='<span class="err">Indica exatamente 8 equipas.</span>';try{const date=$('date').value,level=$('level').value,name=`Mega Mix — ${level} — ${date.split('-').reverse().join('/')} — ${selectedFields.join(' + ')}`;const t=(await api('/rest/v1/torneios',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({nome:name,formato:'Mega Mix',nivel:level,data_torneio:date,hora_inicio:null,campos:4,numero_equipas:8,publicado:false})}))[0];current=t;teams=[];for(let i=0;i<8;i++){const ps=splitPlayers(raw[i]);const resolved=ps.map(n=>{const hit=findPlayer(n);return hit?`${hit.nome} (${hit.nivel})`:`${n} (Sem nível)`});const displayName=resolved.join(' / ');const tm=(await api('/rest/v1/equipas',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({torneio_id:t.id,nome:displayName,posicao_inicial:i+1})}))[0];teams.push(tm);for(let j=0;j<ps.length;j++){const hit=findPlayer(ps[j]);await api('/rest/v1/equipa_jogadores',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({equipa_id:tm.id,jogador_id:hit?.id||null,nome_registado:ps[j],ordem:j+1})})}}const ms=[[0,1,1,1],[2,3,2,2],[4,5,3,3],[6,7,4,4],[0,2,1,5],[1,3,2,6],[4,6,3,7],[5,7,4,8],[0,3,1,9],[1,2,2,10],[4,7,3,11],[5,6,4,12]];matches=[];for(const [a,b,c,o] of ms){const j=(await api('/rest/v1/jogos',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({torneio_id:t.id,equipa_a_id:teams[a].id,equipa_b_id:teams[b].id,fase:'Grupo',ordem:o,campo:c,estado:'pendente',score_a:null,score_b:null})}))[0];matches.push(j)}$('gameArea').classList.remove('hidden');updateMixStatus();renderBoard();renderRanking();renderGames();renderFinal();updateSaveMeta();await loadOldMixes();$('gameArea').scrollIntoView({behavior:'smooth',block:'start'});$('status').innerHTML='<span class="ok">✓ Novo Mega Mix criado no Supabase.</span>'}catch(e){$('status').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
-async function login(){try{const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value,password:$('password').value})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||'Falha no login');token=d.access_token;localStorage.setItem('t2p_access',token);await start()}catch(e){$('loginMsg').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
-async function start(){try{await api('/auth/v1/user');$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');await loadPlayers();renderFields();$('date').value=new Date().toISOString().slice(0,10);preview();await loadOldMixes()}catch(e){localStorage.removeItem('t2p_access');token='';$('loginMsg').innerHTML='<span class="err">Sessão inválida.</span>'}}
-$('saveMix').onclick=saveMix;$('storyBtn').onclick=createStory;$('oldBtn').onclick=async()=>{$('oldModal').classList.remove('hidden');await loadOldMixes()};$('closeOld').onclick=()=>$('oldModal').classList.add('hidden');$('oldModal').onclick=e=>{if(e.target.id==='oldModal')$('oldModal').classList.add('hidden')};$('openOrder').onclick=()=>{$('gameArea').scrollIntoView({behavior:'smooth',block:'start'})};$('login').onclick=login;$('newMix').onclick=newMix;$('logout').onclick=()=>{localStorage.removeItem('t2p_access');location.reload()};$('teams').oninput=preview;renderFields();if(token)start();
-</script></body></html>
+const DEFAULT=["Equipa 1","Equipa 2","Equipa 3","Equipa 4","Equipa 5","Equipa 6","Equipa 7","Equipa 8"];
+let teams=read("t2p_mega_teams",DEFAULT), scores=read("t2p_mega_scores",{}), players=read("t2p_players",{});
+function read(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function persist(){localStorage.setItem("t2p_mega_teams",JSON.stringify(teams));localStorage.setItem("t2p_mega_scores",JSON.stringify(scores))}
+const M=[
+["m1","1ª Ronda","A1","A2"],["m2","1ª Ronda","A3","A4"],["m3","1ª Ronda","B1","B2"],["m4","1ª Ronda","B3","B4"],
+["m5","2ª Ronda","A1","A3"],["m6","2ª Ronda","A2","A4"],["m7","2ª Ronda","B1","B3"],["m8","2ª Ronda","B2","B4"],
+["m9","3ª Ronda","A1","A4"],["m10","3ª Ronda","A2","A3"],["m11","3ª Ronda","B1","B4"],["m12","3ª Ronda","B2","B3"],
+["m13","1/2 Final","1A","2B"],["m14","1/2 Final","1B","2A"],["m15","3º/4º Lugar","L13","L14"],
+["m16","Playoff 5º/8º","3A","3B"],["m17","Playoff 5º/8º","4A","4B"],["m18","FINAL","W13","W14"],
+["m19","5º/6º Lugar","W16","W17"],["m20","7º/8º Lugar","L16","L17"]
+].map(x=>({id:x[0],round:x[1],a:x[2],b:x[3]}));
+const byId=id=>M.find(m=>m.id===id);
+const COURTS=[["m1","m5","m9","m13","m18"],["m2","m6","m10","m14","m15"],["m3","m7","m11","m16","m19"],["m4","m8","m12","m17","m20"]];
+
+function clean(s){return s.trim().replace(/^\s*\d+\s*[-.)]\s*/,"").replace(/🎾|🏓|🎯|•/g,"").replace(/\s+/g," ").trim()}
+function parse(s){return s.split(/\r?\n/).map(clean).filter(Boolean).slice(0,8)}
+function sc(id){let s=scores[id];if(!s||s[0]===""||s[1]==="")return null;let a=+s[0],b=+s[1];return Number.isFinite(a)&&Number.isFinite(b)?[a,b]:null}
+function win(id){let s=sc(id);return s&&s[0]!==s[1]?(s[0]>s[1]?"a":"b"):null}
+
+function group(g){
+ const off=g==="A"?0:4;
+ let r=[0,1,2,3].map(i=>({name:teams[off+i]||"A definir",w:0,d:0,p:0,m:0}));
+ M.filter(m=>+m.id.slice(1)<=12 && m.a[0]===g).forEach(m=>{
+   let s=sc(m.id);if(!s)return;
+   let ia=r.findIndex(x=>x.name===team(m.a)),ib=r.findIndex(x=>x.name===team(m.b));
+   if(ia<0||ib<0)return;
+   r[ia].p+=s[0];r[ia].m+=s[1];r[ib].p+=s[1];r[ib].m+=s[0];
+   if(s[0]>s[1]){r[ia].w++;r[ib].d++}else{r[ib].w++;r[ia].d++}
+ });
+ r.sort((a,b)=>b.w-a.w || ((b.p-b.m)-(a.p-a.m)) || (b.p-a.p));
+ return r;
+}
+
+function normName(s){
+ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+}
+function splitPlayers(teamName){
+ return String(teamName||"").split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2);
+}
+function playerInfo(name){
+ const raw=String(name||"").trim();
+ const key=normName(raw);
+
+ // 1) Correspondência exacta
+ if(players[key]) return players[key];
+
+ // 2) Primeiro nome / parte do nome.
+ // Ex.: "Tiago" encontra "Tiago Laurentino".
+ const entries=Object.values(players);
+ const candidates=entries.filter(p=>{
+   const pk=normName(p.name);
+   if(!pk) return false;
+   if(pk===key) return true;
+   if(pk.startsWith(key+" ")) return true;
+   if(pk.includes(" "+key+" ")) return true;
+   if(pk.endsWith(" "+key)) return true;
+   // "Miguel F" pode encontrar "Miguel Fernandes"
+   const parts=key.split(" ").filter(Boolean);
+   const pparts=pk.split(" ").filter(Boolean);
+   return parts.length>0 && parts.every(part=>pparts.some(pp=>pp.startsWith(part)));
+ });
+
+ // Se houver uma única correspondência, completa automaticamente.
+ if(candidates.length===1) return candidates[0];
+
+ // 3) Correspondência por prefixo dos tokens, mesmo com nomes abreviados.
+ const tokenMatches=entries.filter(p=>{
+   const pk=normName(p.name);
+   const parts=key.split(" ").filter(Boolean);
+   const pparts=pk.split(" ").filter(Boolean);
+   return parts.length>0 && parts.every(part=>pparts.some(pp=>pp.startsWith(part)));
+ });
+ if(tokenMatches.length===1) return tokenMatches[0];
+
+ // Se houver 0 ou várias, não inventamos um jogador.
+ return {name:raw,level:"Sem nível"};
+}
+function formatPlayer(name){
+ const p=playerInfo(name);
+ return p.name+" ("+p.level+")";
+}
+function formatTeam(name){
+ return splitPlayers(name).map(formatPlayer).join(" / ");
+}
+function team(code){
+ code=String(code||"");
+ if(/^A[1-4]$/.test(code)) return teams[Number(code[1])-1] || "A definir";
+ if(/^B[1-4]$/.test(code)) return teams[4+Number(code[1])-1] || "A definir";
+ if(/^[1-4][AB]$/.test(code)){
+   const r=group(code[1]);
+   return r[Number(code[0])-1]?.name || "A aguardar";
+ }
+ const m=byId(code.slice(1) ? "m"+code.slice(1) : "");
+ if(!m) return "A aguardar";
+ const w=win(m.id);
+ if(!w) return "A aguardar";
+ const side = code[0]==="W" ? w : (w==="a" ? "b" : "a");
+ return team(m[side]);
+}
+
+function editReady(m){
+ let a=team(m.a),b=team(m.b);
+ return !["A aguardar","A definir"].includes(a)&&!["A aguardar","A definir"].includes(b);
+}
+
+function renderBoard(){
+ const board=document.getElementById("board");board.innerHTML="";
+ COURTS.forEach((ids,c)=>{
+  let col=document.createElement("div");col.className="court";
+  col.innerHTML='<div class="ct">Campo '+(c+1)+'</div>';
+  ids.forEach(id=>{
+   let m=byId(id),s=scores[id]||["",""],done=sc(id),ready=editReady(m);
+   let rawA=team(m.a),rawB=team(m.b);
+   let el=document.createElement("div");el.className="match";
+   el.innerHTML='<div class="round">'+m.round+'</div>'+
+    '<div class="names">'+esc(formatTeam(rawA))+'<br>'+esc(formatTeam(rawB))+'</div>'+
+    '<div class="scores">'+
+    '<input class="score" data-id="'+id+'" data-i="0" inputmode="numeric" maxlength="2" value="'+(s[0]||"")+'" '+(ready?"":"disabled")+'> <b>-</b>'+
+    '<input class="score" data-id="'+id+'" data-i="1" inputmode="numeric" maxlength="2" value="'+(s[1]||"")+'" '+(ready?"":"disabled")+'>'+
+    '</div><div class="'+(done?"ok":"wait")+'">'+(done?"✓ Resultado lançado":ready?"Introduzir resultado":"A aguardar resultados anteriores")+'</div>';
+   col.appendChild(el);
+  });board.appendChild(col);
+ });
+ document.querySelectorAll(".score").forEach(i=>{
+   i.addEventListener("input",()=>{
+     i.value=i.value.replace(/\D/g,"").slice(0,2);
+     // Guarda imediatamente, mas só avança de fase quando os DOIS resultados estiverem preenchidos.
+     saveOne(i.dataset.id,+i.dataset.i,i.value);
+   });
+ });
+}
+
+function saveOne(id,i,v){
+ scores[id]=scores[id]||["",""];
+ scores[id][i]=String(v).replace(/\D/g,"").slice(0,2);
+ persist();
+ if(sc(id)){
+   const active=document.activeElement;
+   renderAll();
+   // Se o resultado acabou de ser completado, manter o utilizador na mesma zona.
+   if(active && active.dataset && active.dataset.id===id){
+     const next=document.querySelector('.score[data-id="'+id+'"][data-i="'+i+'"]');
+     if(next){next.focus();next.select();}
+   }
+ } else {
+   renderGroups();
+ }
+}
+
+function renderGroups(){
+ [["A","ga"],["B","gb"]].forEach(([g,id])=>{
+  let r=group(g);
+  document.getElementById(id).innerHTML=r.map(x=>'<tr><td>'+esc(formatTeam(x.name))+'</td><td>'+x.w+'</td><td>'+x.d+'</td><td>'+x.p+'</td><td>'+x.m+'</td></tr>').join("");
+ });
+}
+
+function pair(id){
+ let w=win(id);if(!w)return null;let m=byId(id);
+ return {win:team(m[w]),lose:team(m[w==="a"?"b":"a"])};
+}
+function finalRanking(){
+ let out=new Array(8).fill("A aguardar"),f=pair("m18"),p34=pair("m15"),p56=pair("m19"),p78=pair("m20");
+ if(f){out[0]=f.win;out[1]=f.lose}
+ if(p34){out[2]=p34.win;out[3]=p34.lose}
+ if(p56){out[4]=p56.win;out[5]=p56.lose}
+ if(p78){out[6]=p78.win;out[7]=p78.lose}
+ return out;
+}
+function renderFinal(){
+ let r=finalRanking();document.getElementById("fl").innerHTML=r.map((x,i)=>
+ '<div class="pos '+(i===0?"champion":"")+'"><div class="num">'+(i===0?"🥇":i===1?"🥈":(i+1)+"º")+'</div><div class="fn">'+esc(formatTeam(x))+'</div>'+(i===0?'<div class="championLabel">CAMPEÃO</div>':'')+'</div>').join("");
+}
+function renderProgress(){
+ const doneGroups=[...Array(12)].filter((_,i)=>!!sc("m"+(i+1))).length;
+ const sf=[sc("m13"),sc("m14")].filter(Boolean).length;
+ const later=[sc("m15"),sc("m16"),sc("m17"),sc("m18"),sc("m19"),sc("m20")].filter(Boolean).length;
+ let text="Fase de grupos: "+doneGroups+"/12";
+ if(doneGroups===12) text+="  •  Meias-finais prontas";
+ if(sf===2) text+="  •  Última fase pronta (final + classificação)";
+ if(later===6) text+="  •  Torneio terminado";
+ document.getElementById("progress").textContent=text;
+}
+
+function renderMatchPreview(){
+ const box=document.getElementById("matchPreview");
+ const list=parse(document.getElementById("wa").value);
+ if(!list.length){box.innerHTML="";return;}
+ const rows=list.map((t,i)=>{
+   const resolved=splitPlayers(t).map(n=>playerInfo(n));
+   const text=resolved.map(p=>esc(p.name)+" ("+esc(p.level)+")").join(" / ");
+   const ambiguous=resolved.some(p=>p.level==="Sem nível");
+   return "<div style='margin-top:4px'><b>"+(i+1)+".</b> "+text+
+          (ambiguous?" <span style='color:#b00020'>⚠ não está na Base de Dados — não conta W</span>":" ✓")+
+          "</div>";
+ }).join("");
+ box.innerHTML="<b>Pré-visualização:</b>"+rows;
+}
+function renderTeams(){document.getElementById("teams").innerHTML=teams.map((x,i)=>'<div class="team"><b>'+(i+1)+'.</b> '+esc(x)+'</div>').join("")}
+function renderAll(){renderTeams();renderBoard();renderGroups();renderFinal();renderProgress()}
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+document.getElementById("load").onclick=()=>{
+ let list=parse(document.getElementById("wa").value);
+ if(list.length!==8){
+   document.getElementById("msg").style.color="#b00020";
+   document.getElementById("msg").textContent="Precisamos de 8 equipas. Foram encontradas "+list.length+".";
+   return;
+ }
+
+ // IMPORTANTE: a inscrição nunca cria jogadores na Base de Dados.
+ // Apenas usa os jogadores que já foram cadastrados manualmente.
+ teams=list.map(t=>splitPlayers(t).map(n=>playerInfo(n).name).join(" / "));
+ scores={};
+ persist();
+
+ document.getElementById("msg").style.color="#159a52";
+ document.getElementById("msg").textContent="✓ 8 equipas adicionadas. Jogadores não cadastrados ficam sem nível e não acumulam vitórias.";
+ renderAll();
+ window.scrollTo({top:document.getElementById("board").offsetTop-10,behavior:"smooth"});
+};
+document.getElementById("clear").onclick=()=>{document.getElementById("wa").value="";document.getElementById("msg").textContent=""};
+document.getElementById("reset").onclick=()=>{if(confirm("Apagar todos os resultados?")){scores={};persist();renderAll()}};
+document.getElementById("gamesBtn").onclick=()=>{document.getElementById("games").classList.remove("hidden");document.getElementById("final").classList.add("hidden");document.getElementById("gamesBtn").classList.add("active");document.getElementById("finalBtn").classList.remove("active")};
+document.getElementById("finalBtn").onclick=()=>{document.getElementById("final").scrollIntoView({behavior:"smooth",block:"start"});document.getElementById("finalBtn").classList.add("active");document.getElementById("gamesBtn").classList.remove("active")};
+
+
+
+document.getElementById("wa").addEventListener("input",renderMatchPreview);
+
+document.getElementById("wa").value=teams.map((x,i)=>(i+1)+"-🎾 "+x).join("\n");
+/* cloud boot acima */
+document.getElementById("publish").onclick=async()=>{try{const r=finalRanking();if(r.some(x=>x==="A aguardar")){document.getElementById("pubmsg").textContent="⚠ Termina o torneio antes de publicar.";return;}const games=M.map((m,i)=>{const s=sc(m.id);const w=win(m.id);return {teamA:team(m.a),teamB:team(m.b),fase:m.round,ronda:i<4?1:i<8?2:i<12?3:4,campo:COURTS.findIndex(x=>x.includes(m.id))+1,ordem:i+1,scoreA:s?s[0]:null,scoreB:s?s[1]:null,winner:w};});const ranking=r.map((x,i)=>({position:i+1,team:x,wins:i===0?1:0,diff:""}));await tpPublishTournament({nome:"Mega Mix Time2Padel",formato:"mega_mix",campos:4,teams,scores,games,ranking,champion:r[0]});document.getElementById("pubmsg").textContent="✓ Resultados publicados online.";}catch(e){document.getElementById("pubmsg").textContent="Erro ao publicar: "+e.message;}};
+(async()=>{const u=await tpRequireAdmin();if(!u)return;tpAddLogout();try{const rows=await tpLoadPlayers();players=Object.fromEntries(rows.map(p=>[tpNorm(p.nome),{name:p.nome,level:p.nivel,id:p.id}]));renderAll();renderMatchPreview();}catch(e){document.getElementById("pubmsg").textContent="Erro a carregar jogadores: "+e.message;}})();
+</script>
+</body>
+</html>

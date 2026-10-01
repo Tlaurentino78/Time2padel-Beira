@@ -95,6 +95,7 @@ th{background:#f0f2f4;padding:9px 7px;font-size:13px;position:sticky;top:0;z-ind
 <script>
 const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
 const courts=["Visioluz","Mozfert","Orangefreight","Lenmed-MSS","Ferragens Chiveve","Academia Time2Padel"];
+const times=[];
 for(let m=7*60;m<=23*60;m+=30){
   times.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
 }

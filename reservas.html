@@ -2,6 +2,9 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Time2Padel Beira — Reservas</title>
 <style>
@@ -338,14 +341,23 @@ async function renderReal(){
    const selectFields="id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
    const q=`${SB}/rest/v1/reservas?select=${selectFields}&data_reserva=eq.${encodeURIComponent(date.value)}&order=hora_inicio.asc`;
    const r=await fetch(q,{headers:authHeaders()});
-   if(!r.ok){console.error(await r.text());return;}
+   if(!r.ok){
+     const err=await r.text();
+     console.error(err);
+     return;
+   }
    const rows=await r.json();
    const typeClass={Reserva:"res",Jogo:"game",Aula:"class",Mix:"mix"};
-   const toMin=x=>Number(String(x).slice(0,2))*60+Number(String(x).slice(3,5));
+   const norm=x=>String(x??"").trim().toLowerCase();
+   const toMin=x=>{const z=String(x??"").slice(0,5);const [h,m]=z.split(":").map(Number);return h*60+m};
    rows.forEach(ev=>{
-     const ci=courts.indexOf(ev.campo); if(ci<0)return;
-     const start=toMin(ev.hora_inicio), ti=times.findIndex(x=>toMin(x)===start); if(ti<0)return;
-     const n=Math.max(1,Math.ceil(Number(ev.duracao_min)/30));
+     // Aceita diferenças de maiúsculas/minúsculas ou espaços nos nomes dos campos.
+     const ci=courts.findIndex(c=>norm(c)===norm(ev.campo));
+     if(ci<0)return;
+     const start=toMin(ev.hora_inicio);
+     const ti=times.findIndex(x=>toMin(x)===start);
+     if(ti<0)return;
+     const n=Math.max(1,Math.ceil(Number(ev.duracao_min||30)/30));
      const trs=document.querySelectorAll("#body tr");
      for(let i=ti;i<Math.min(ti+n,trs.length);i++){
        const cell=trs[i].querySelectorAll(".slot")[ci];
@@ -353,7 +365,7 @@ async function renderReal(){
        cell.className="slot "+(typeClass[ev.tipo]||"res");
        const nome=ev.jogador_nome||"";
        cell.textContent=currentRole==="admin"?(nome||ev.tipo):ev.tipo;
-       cell.title=(nome||ev.tipo)+" · Tocar para abrir";
+       cell.title=(nome||ev.tipo)+" · Tocar para editar";
        cell.onclick=(e)=>{e.stopPropagation();openEditModal(ev)};
      }
    });

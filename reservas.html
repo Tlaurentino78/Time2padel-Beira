@@ -262,7 +262,7 @@ async function enviarEmailConfirmacao(reserva){
       console.log("Jogador sem email — confirmação não enviada.");
       return false;
     }
-    const r=await fetch(`${SB}/functions/v1/enviar-email-reserva`,{
+    const r=await fetch(`${SB}/functions/v1/bright-function`,{
       method:"POST",
       headers:{...authHeaders(true),"Content-Type":"application/json"},
       body:JSON.stringify({

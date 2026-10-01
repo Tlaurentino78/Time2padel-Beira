@@ -256,18 +256,18 @@ async function checkReservationAccess(){
     return rows[0]?.estado==='Aprovado';
   }catch(e){return false}
 }
-async function enviarEmailConfirmacao(reserva,email){
-  if(!email){
-    console.log("Jogador sem email — confirmação não enviada.");
-    return;
-  }
+async function enviarEmailConfirmacao(reserva){
   try{
+    if(!reserva.email){
+      console.log("Jogador sem email — confirmação não enviada.");
+      return false;
+    }
     const r=await fetch(`${SB}/functions/v1/enviar-email-reserva`,{
       method:"POST",
-      headers:{...authHeaders(true)},
+      headers:{...authHeaders(true),"Content-Type":"application/json"},
       body:JSON.stringify({
-        email,
-        nome:reserva.jogador_nome||"Jogador",
+        email:reserva.email,
+        nome:reserva.jogador_nome,
         data:reserva.data_reserva,
         hora:String(reserva.hora_inicio).slice(0,5),
         campo:reserva.campo,
@@ -275,14 +275,9 @@ async function enviarEmailConfirmacao(reserva,email){
         duracao:reserva.duracao_min
       })
     });
-    const txt=await r.text();
-    let result={};
-    try{result=txt?JSON.parse(txt):{}}catch(e){result={raw:txt}}
-    if(!r.ok){
-      console.error("Erro ao enviar email:",r.status,result);
-      return false;
-    }
-    console.log("Email de confirmação enviado",result);
+    const raw=await r.text();
+    if(!r.ok){ console.error("Erro ao enviar email:",raw); return false; }
+    console.log("Email de confirmação enviado:",raw);
     return true;
   }catch(e){
     console.error("Erro no email:",e);
@@ -320,11 +315,11 @@ async function saveDemo(){
    const payload={data_reserva:date.value,hora_inicio:hora,duracao_min:duration,campo:courts[ci],tipo:selectedType,jogador_id:jogadorId,jogador_nome:jogadorNome,convidado:convidado||null,utilizador_id:currentUser.id};
    const ins=await fetch(`${SB}/rest/v1/reservas`,{method:"POST",headers:{...authHeaders(true),Prefer:"return=representation"},body:JSON.stringify(payload)});
    if(!ins.ok)throw new Error(await ins.text()||"Erro ao guardar");
-   const created=await ins.json();
-   const reserva=Array.isArray(created)?(created[0]||payload):created;
-   const emailOk=await enviarEmailConfirmacao(reserva,jogadorEmail);
+   const savedRows=await ins.json();
+   const saved=Array.isArray(savedRows)?savedRows[0]:savedRows;
+   const emailOk=await enviarEmailConfirmacao({...payload,id:saved?.id,email:jogadorEmail});
    closeModal(); await renderReal();
-   alert(emailOk?"✅ Reserva guardada e email de confirmação enviado.":"✅ Reserva guardada. ⚠️ O email de confirmação não foi enviado.");
+   alert(emailOk ? "✅ Reserva guardada e email de confirmação enviado." : "✅ Reserva guardada. ⚠️ Email de confirmação não enviado.");
  }catch(e){alert("Não foi possível guardar a reserva.\n\n"+e.message)}
 }
 async function alterarReserva(ev){

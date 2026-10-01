@@ -140,7 +140,7 @@ async function restoreSession(){
 
 async function loadPlayers(){
  try{
-   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&estado=eq.Aprovado&order=nome.asc',{headers:authHeaders()});
+   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&order=nome.asc',{headers:authHeaders()});
    if(r.ok)players=await r.json();
  }catch(e){players=[]}
 }
@@ -151,7 +151,7 @@ function render(){
 }
 function openModal(ci,ti,t){
  current={ci,ti,t};document.getElementById("modalTitle").textContent=`Campo ${courts[ci]} · ${date.value} · ${t}`;document.getElementById("modal").classList.add("show");document.getElementById("guest").value="";document.getElementById("duration").value="30";setType("Reserva");suggestions.innerHTML="";
- if(currentRole==="admin"){player.disabled=false;player.value="";player.placeholder="Escreve o nome do jogador...";document.getElementById("playerHint").textContent="Administrador: podes escolher qualquer jogador aprovado.";player.focus();}
+ if(currentRole==="admin"){player.disabled=false;player.value="";player.placeholder="Escreve o nome do jogador...";document.getElementById("playerHint").textContent="Administrador: podes escolher qualquer jogador da lista de reservas.";player.focus();}
  else{player.disabled=true;player.value=currentReservaPlayer?.nome||"";document.getElementById("playerHint").textContent=currentReservaPlayer?"A tua reserva fica automaticamente associada ao teu nome.":"Não foi encontrado o teu registo de jogador de reservas aprovado.";}
 }
 function closeModal(){document.getElementById("modal").classList.remove("show");current=null}

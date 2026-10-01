@@ -77,7 +77,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 
 <div id="modal" class="modal">
 <div class="box">
-<div class="mhead">📅 Novo evento — <span id="modalTitle"></span></div>
+<div class="mhead">📅 <span id="modalMode">Novo evento</span> — <span id="modalTitle"></span></div>
 <div class="mbody">
 <div class="field"><label>Jogador</label><input id="player" autocomplete="off" placeholder="Escreve o nome do jogador..."><div id="suggestions" class="suggestions"></div><div id="playerHint" class="hint">São mostrados apenas jogadores de reservas aprovados. Os jogadores dos Mixes não aparecem aqui.</div></div>
 <div class="field" id="guestField"><label>Convidado</label><input id="guest" placeholder="Nome de alguém de fora, se existir"></div>
@@ -89,7 +89,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 <button class="type mix" data-type="Mix">Mix</button>
 </div></div>
 <div class="field"><label>Duração</label><select id="duration"><option value="30">30 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></div>
-<div class="actions"><button class="cancel" onclick="closeModal()">Cancelar</button><button class="save" onclick="saveDemo()">Guardar</button></div>
+<div class="actions"><button class="cancel" onclick="closeModal()">Fechar</button><button id="deleteBtn" class="cancel" style="display:none;border-color:#d33;color:#b00020" onclick="cancelarReserva(currentReserva)" >🗑️ Cancelar reserva</button><button class="save" onclick="saveDemo()">Guardar</button></div>
 </div></div></div>
 
 <script>
@@ -100,7 +100,7 @@ for(let m=7*60;m<=23*60;m+=30){
   times.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));
 }
 const date=document.getElementById("date");const player=document.getElementById("player");const suggestions=document.getElementById("suggestions");
-let players=[],selectedType="Reserva",current=null;
+let players=[],selectedType="Reserva",current=null,currentReserva=null;
 function localDate(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}date.value=localDate();
 
 
@@ -169,12 +169,56 @@ function render(){
    b.appendChild(tr);
  });
 }
-function openModal(ci,ti,t){
- current={ci,ti,t};document.getElementById("modalTitle").textContent=`${courts[ci]} · ${date.value} · ${t}`;document.getElementById("modal").classList.add("show");document.getElementById("guest").value="";document.getElementById("guestField").classList.toggle("hidden", currentRole!=="admin");document.getElementById("duration").value="30";setType("Reserva");suggestions.innerHTML="";
- if(currentRole==="admin"){player.disabled=false;player.value="";player.placeholder="Escreve o nome do jogador...";document.getElementById("playerHint").textContent="Administrador: podes escolher qualquer jogador da lista de reservas.";player.focus();}
- else{player.disabled=true;player.value=currentReservaPlayer?.nome||"";document.getElementById("playerHint").textContent=currentReservaPlayer?"A tua reserva fica automaticamente associada ao teu nome.":"Não foi encontrado o teu registo de jogador de reservas aprovado.";}
+function prepararModal(){
+ document.getElementById("guest").value="";
+ document.getElementById("guestField").classList.toggle("hidden", currentRole!=="admin");
+ suggestions.innerHTML="";
+ if(currentRole==="admin"){
+   player.disabled=false;player.placeholder="Escreve o nome do jogador...";
+   document.getElementById("playerHint").textContent="Administrador: podes escolher qualquer jogador da lista de reservas.";
+ }else{
+   player.disabled=true;
+   document.getElementById("playerHint").textContent=currentReservaPlayer?"A tua reserva fica automaticamente associada ao teu nome.":"Não foi encontrado o teu registo de jogador de reservas aprovado.";
+ }
 }
-function closeModal(){document.getElementById("modal").classList.remove("show");current=null}
+function openModal(ci,ti,t){
+ current={ci,ti,t}; currentReserva=null;
+ document.getElementById("modalMode").textContent="Novo evento";
+ document.getElementById("modalTitle").textContent=`${courts[ci]} · ${date.value} · ${t}`;
+ document.getElementById("duration").value="30";
+ document.getElementById("deleteBtn").style.display="none";
+ setType("Reserva"); prepararModal();
+ document.getElementById("modal").classList.add("show");
+ if(currentRole==="admin"){player.value="";player.focus();}
+ else{player.value=currentReservaPlayer?.nome||"";}
+}
+function openEditModal(ev){
+ const canManage=podeGerirReserva(ev,'editar');
+ if(!canManage){
+   alert('⏳ Esta reserva está a menos de 24 horas. Apenas o Administrador pode alterar ou cancelar.');
+   return;
+ }
+ currentReserva=ev;
+ const ci=courts.indexOf(ev.campo);
+ const ti=times.findIndex(x=>x.slice(0,5)===String(ev.hora_inicio).slice(0,5));
+ current={ci:ci,ti:ti,t:String(ev.hora_inicio).slice(0,5)};
+ document.getElementById("modalMode").textContent="Editar reserva";
+ document.getElementById("modalTitle").textContent=`${ev.campo} · ${ev.data_reserva} · ${String(ev.hora_inicio).slice(0,5)}`;
+ document.getElementById("duration").value=String(ev.duracao_min||30);
+ document.getElementById("guest").value=ev.convidado||"";
+ setType(ev.tipo||"Reserva");
+ prepararModal();
+ if(currentRole==="admin"){
+   player.value=ev.jogador_nome||"";
+   player.dataset.playerId=ev.jogador_id||"";
+ }else{
+   player.value=currentReservaPlayer?.nome||ev.jogador_nome||"";
+ }
+ document.getElementById("deleteBtn").style.display="inline-block";
+ document.getElementById("modal").classList.add("show");
+}
+
+function closeModal(){document.getElementById("modal").classList.remove("show");current=null;currentReserva=null}
 function setType(t){selectedType=t;document.querySelectorAll(".type").forEach(b=>b.classList.toggle("selected",b.dataset.type===t))}
 document.querySelectorAll(".type").forEach(b=>b.onclick=()=>setType(b.dataset.type));
 player.addEventListener("input",async()=>{
@@ -209,44 +253,57 @@ async function checkReservationAccess(){
   }catch(e){return false}
 }
 async function saveDemo(){
- if(!(await checkReservationAccess())){
-   alert("⏳ A tua conta ainda não está aprovada para fazer reservas. Aguarda a aprovação do administrador.");
-   return;
- }
+ if(currentReserva) return alterarReserva(currentReserva);
+ if(!(await checkReservationAccess())){alert("⏳ A tua conta ainda não está aprovada para fazer reservas. Aguarda a aprovação do administrador.");return;}
  if(!player.value.trim()&&!document.getElementById("guest").value.trim()){alert("Indica o jogador ou um convidado.");return}
  const {ci,ti}=current, duration=Number(document.getElementById("duration").value);
- const hora=times[ti];
- const startMin=Number(hora.slice(0,2))*60+Number(hora.slice(3));
+ const hora=times[ti], startMin=Number(hora.slice(0,2))*60+Number(hora.slice(3));
  if(startMin+duration>23*60){alert("A duração ultrapassa as 23:00.");return}
  const convidado=currentRole==="admin" ? document.getElementById("guest").value.trim() : "";
  if(currentRole!=="admin" && document.getElementById("guest").value.trim()){alert("Apenas o Administrador pode adicionar Convidados.");return;}
  let jogadorId=null,jogadorNome="";
- if(currentRole==="admin"){jogadorNome=player.value.trim();const p=players.find(x=>x.id===player.dataset.playerId)||players.find(x=>x.nome===jogadorNome);jogadorId=p?.id||null;}
- else{jogadorId=currentReservaPlayer?.id||null;jogadorNome=currentReservaPlayer?.nome||"";}
+ if(currentRole==="admin"){
+   jogadorNome=player.value.trim();
+   const p=players.find(x=>x.id===player.dataset.playerId)||players.find(x=>x.nome===jogadorNome);
+   jogadorId=p?.id||null;
+ }else{jogadorId=currentReservaPlayer?.id||null;jogadorNome=currentReservaPlayer?.nome||"";}
  if(!jogadorId){alert(currentRole==="admin"?"Seleciona um jogador aprovado.":"A tua conta ainda não está ligada a um jogador de reservas aprovado.");return;}
- const payload={data_reserva:date.value,hora_inicio:hora,duracao_min:duration,campo:courts[ci],tipo:selectedType,jogador_id:jogadorId,jogador_nome:jogadorNome,convidado:convidado||null,utilizador_id:currentUser.id};
  try{
    const q=`${SB}/rest/v1/reservas?data_reserva=eq.${encodeURIComponent(date.value)}&campo=eq.${encodeURIComponent(courts[ci])}`;
-   const check=await fetch(q,{headers:authHeaders()});
-   const existing=check.ok?await check.json():[];
-   const toMin=s=>Number(String(s).slice(0,2))*60+Number(String(s).slice(3,5));
-   const overlaps=existing.some(r=>{
-     const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);
-     return startMin<b && startMin+duration>a;
-   });
-   if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return}
-   const ins=await fetch(`${SB}/rest/v1/reservas`,{
-     method:"POST",
-     headers:{...authHeaders(true),Prefer:"return=minimal"},
-     body:JSON.stringify(payload)
-   });
-   if(!ins.ok){const txt=await ins.text();throw new Error(txt||"Erro ao guardar");}
-   closeModal();
-   await renderReal();
-   alert("✅ Reserva guardada com sucesso.");
- }catch(e){
-   alert("Não foi possível guardar a reserva.\n\n"+e.message);
+   const check=await fetch(q,{headers:authHeaders()}); const existing=check.ok?await check.json():[];
+   const toMin=x=>Number(String(x).slice(0,2))*60+Number(String(x).slice(3,5));
+   const overlaps=existing.some(r=>{const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);return startMin<b&&startMin+duration>a;});
+   if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return;}
+   const payload={data_reserva:date.value,hora_inicio:hora,duracao_min:duration,campo:courts[ci],tipo:selectedType,jogador_id:jogadorId,jogador_nome:jogadorNome,convidado:convidado||null,utilizador_id:currentUser.id};
+   const ins=await fetch(`${SB}/rest/v1/reservas`,{method:"POST",headers:{...authHeaders(true),Prefer:"return=minimal"},body:JSON.stringify(payload)});
+   if(!ins.ok)throw new Error(await ins.text()||"Erro ao guardar");
+   closeModal(); await renderReal(); alert("✅ Reserva guardada com sucesso.");
+ }catch(e){alert("Não foi possível guardar a reserva.\n\n"+e.message)}
+}
+async function alterarReserva(ev){
+ if(!podeGerirReserva(ev,'editar')){alert('⏳ Esta reserva está a menos de 24 horas. Apenas o Administrador pode alterar.');return;}
+ const {ci,ti}=current, duration=Number(document.getElementById("duration").value), hora=times[ti];
+ const startMin=Number(hora.slice(0,2))*60+Number(hora.slice(3));
+ if(startMin+duration>23*60){alert("A duração ultrapassa as 23:00.");return;}
+ let jogadorId=ev.jogador_id||null, jogadorNome=ev.jogador_nome||"";
+ if(currentRole==="admin"){
+   jogadorNome=player.value.trim();
+   const p=players.find(x=>x.id===player.dataset.playerId)||players.find(x=>x.nome===jogadorNome);
+   jogadorId=p?.id||null;
+   if(!jogadorId){alert("Seleciona um jogador aprovado.");return;}
  }
+ const convidado=currentRole==="admin" ? document.getElementById("guest").value.trim() : (ev.convidado||null);
+ try{
+   const q=`${SB}/rest/v1/reservas?data_reserva=eq.${encodeURIComponent(date.value)}&campo=eq.${encodeURIComponent(courts[ci])}`;
+   const check=await fetch(q,{headers:authHeaders()}); const existing=check.ok?await check.json():[];
+   const toMin=x=>Number(String(x).slice(0,2))*60+Number(String(x).slice(3,5));
+   const overlaps=existing.some(r=>r.id!==ev.id&&(()=>{const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);return startMin<b&&startMin+duration>a;})());
+   if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return;}
+   const payload={p_reserva_id:ev.id,p_data_reserva:date.value,p_hora_inicio:hora,p_duracao_min:duration,p_campo:courts[ci],p_tipo:selectedType,p_jogador_id:jogadorId,p_jogador_nome:jogadorNome,p_convidado:convidado||null};
+   const r=await fetch(`${SB}/rest/v1/rpc/alterar_reserva`,{method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},body:JSON.stringify(payload)});
+   if(!r.ok)throw new Error(await r.text()||'Erro ao alterar');
+   closeModal(); await renderReal(); alert('✅ Reserva alterada com sucesso.');
+ }catch(e){alert('Não foi possível alterar a reserva.\n\n'+e.message)}
 }
 
 function reservaInicioLocal(data,hora){
@@ -256,16 +313,10 @@ function reservaInicioLocal(data,hora){
 }
 function podeGerirReserva(ev,acao){
   if(currentRole==='admin') return true;
+  if(!currentUser || ev.utilizador_id !== currentUser.id) return false;
   const inicio=reservaInicioLocal(ev.data_reserva,ev.hora_inicio);
   const horas=(inicio.getTime()-Date.now())/3600000;
   return horas >= 24;
-}
-async function editarReserva(ev){
-  if(currentRole!=='admin' && !podeGerirReserva(ev,'editar')){
-    alert('⏳ Esta reserva está a menos de 24 horas. Apenas o Administrador pode alterar a reserva.');
-    return;
-  }
-  alert(currentRole==='admin' ? 'A edição de reservas pelo Administrador será feita nesta janela.' : 'A edição ficará disponível fora das 24 horas.');
 }
 async function cancelarReserva(ev){
   if(currentRole!=='admin' && !podeGerirReserva(ev,'cancelar')){
@@ -284,39 +335,29 @@ async function cancelarReserva(ev){
 async function renderReal(){
  render();
  try{
-   const selectFields=currentRole==="admin"?"id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado,utilizador_id":"id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,utilizador_id";
-   const q=`${SB}/rest/v1/reservas?select=${selectFields}&data_reserva=eq.${encodeURIComponent(date.value)}`;
+   const selectFields="id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
+   const q=`${SB}/rest/v1/reservas?select=${selectFields}&data_reserva=eq.${encodeURIComponent(date.value)}&order=hora_inicio.asc`;
    const r=await fetch(q,{headers:authHeaders()});
-   if(!r.ok)return;
+   if(!r.ok){console.error(await r.text());return;}
    const rows=await r.json();
    const typeClass={Reserva:"res",Jogo:"game",Aula:"class",Mix:"mix"};
-   const toMin=s=>Number(String(s).slice(0,2))*60+Number(String(s).slice(3,5));
+   const toMin=x=>Number(String(x).slice(0,2))*60+Number(String(x).slice(3,5));
    rows.forEach(ev=>{
      const ci=courts.indexOf(ev.campo); if(ci<0)return;
      const start=toMin(ev.hora_inicio), ti=times.findIndex(x=>toMin(x)===start); if(ti<0)return;
-     const n=Math.max(1,Number(ev.duracao_min)/30);
-     const rowsByTime=document.querySelectorAll("#body tr");
-     const canManage=podeGerirReserva(ev,'cancelar');
-     for(let i=ti;i<Math.min(ti+n,rowsByTime.length);i++){
-       const cells=rowsByTime[i].querySelectorAll(".slot");
-       const cell=cells[ci];
-       if(cell){
-         cell.className="slot "+(typeClass[ev.tipo]||"res");
-         const nome=ev.jogador_nome||"";
-         cell.textContent=currentRole==="admin" ? (nome||ev.tipo) : ev.tipo;
-         cell.title=currentRole==="admin" ? (nome||ev.tipo) : ev.tipo;
-         cell.onclick=()=>{
-           const pode=podeGerirReserva(ev,'cancelar');
-           let acao='';
-           if(currentRole==='admin') acao='Administrador: pode alterar ou cancelar a qualquer momento.';
-           else if(pode) acao='Podes cancelar/alterar esta reserva porque faltam mais de 24 horas.';
-           else acao='Nas últimas 24 horas, apenas o Administrador pode alterar ou cancelar.';
-           if(confirm((currentRole==='admin'?'Reserva de ':'Reserva de ')+(nome||'jogador')+'\n\n'+acao+'\n\nCancelar esta reserva?')) cancelarReserva(ev);
-         };
-       }
+     const n=Math.max(1,Math.ceil(Number(ev.duracao_min)/30));
+     const trs=document.querySelectorAll("#body tr");
+     for(let i=ti;i<Math.min(ti+n,trs.length);i++){
+       const cell=trs[i].querySelectorAll(".slot")[ci];
+       if(!cell)continue;
+       cell.className="slot "+(typeClass[ev.tipo]||"res");
+       const nome=ev.jogador_nome||"";
+       cell.textContent=currentRole==="admin"?(nome||ev.tipo):ev.tipo;
+       cell.title=(nome||ev.tipo)+" · Tocar para abrir";
+       cell.onclick=(e)=>{e.stopPropagation();openEditModal(ev)};
      }
    });
- }catch(e){}
+ }catch(e){console.error(e)}
 }
 
 date.addEventListener("change",renderReal);

@@ -28,7 +28,7 @@ button{cursor:pointer}.green{background:#20cf68;color:#fff;border-color:#20cf68}
 <div class="card">
   <h2 style="margin-top:0">Inscrições</h2>
   <p style="color:#666">Esta lista é exclusiva das reservas e é separada dos jogadores das competições.</p>
-  <div class="tableWrap"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Estado</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="tableWrap"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Estado</th><th>Acesso</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
 </div>
 <script>
@@ -56,19 +56,28 @@ async function init(){
  }
 }
 async function load(){
- const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,email,estado,created_at&order=created_at.desc',{headers:headers()});
+ const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,email,estado,auth_user_id,created_at&order=created_at.desc',{headers:headers()});
  if(!r.ok){document.getElementById('msg').className='msg error';document.getElementById('msg').textContent='Erro ao carregar inscrições.';return}
- const data=await r.json();
+ let data=await r.json();
+ data=await loadRoles(data);
  const tbody=document.getElementById('rows');tbody.innerHTML='';
- if(!data.length){tbody.innerHTML='<tr><td colspan="5">Ainda não existem inscrições.</td></tr>';return}
+ if(!data.length){tbody.innerHTML='<tr><td colspan="6">Ainda não existem inscrições.</td></tr>';return}
  data.forEach(p=>{
   const tr=document.createElement('tr');
   const cls=p.estado==='Aprovado'?'approved':p.estado==='Rejeitado'?'rejected':'pending';
-  tr.innerHTML=`<td><b>${esc(p.nome)}</b></td><td>${esc(p.telefone||'—')}</td><td>${esc(p.email||'—')}</td><td><span class="badge ${cls}">${esc(p.estado)}</span></td><td class="actions"><button class="green" onclick="setStatus('${p.id}','Aprovado')">Aprovar</button><button class="red" onclick="setStatus('${p.id}','Rejeitado')">Rejeitar</button></td>`;
+  const acesso = p.role==='admin' ? '👑 Administrador' : '🎾 Jogador';
+  const adminBtn = p.auth_user_id ? (p.role==='admin' ? `<button class="red" onclick="setRole('${p.id}','jogador')">Tirar Admin</button>` : `<button class="green" onclick="setRole('${p.id}','admin')">👑 Tornar Admin</button>`) : '—';
+  tr.innerHTML=`<td><b>${esc(p.nome)}</b></td><td>${esc(p.telefone||'—')}</td><td>${esc(p.email||'—')}</td><td><span class="badge ${cls}">${esc(p.estado)}</span></td><td>${acesso}</td><td class="actions"><button class="green" onclick="setStatus('${p.id}','Aprovado')">Aprovar</button><button class="red" onclick="setStatus('${p.id}','Rejeitado')">Rejeitar</button>${adminBtn}</td>`;
   tbody.appendChild(tr);
  });
 }
 function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+async function setRole(id,role){
+ if(!confirm(role==='admin'?'Tornar este jogador Administrador?':'Retirar acesso de Administrador?'))return;
+ const r=await fetch(SB+'/rest/v1/rpc/definir_staff_admin',{method:'POST',headers:{...headers(true),Prefer:'return=minimal'},body:JSON.stringify({p_jogador_reserva_id:id,p_admin:role==='admin'})});
+ if(!r.ok){const t=await r.text();alert('Não foi possível alterar o acesso.\n\n'+t);return;}
+ await load();
+}
 async function setStatus(id,status){
  const r=await fetch(SB+'/rest/v1/jogadores_reservas?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{...headers(true),Prefer:'return=minimal'},body:JSON.stringify({estado:status})});
  if(!r.ok){alert('Não foi possível alterar o estado.');return}

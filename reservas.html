@@ -270,8 +270,7 @@ async function renderReal(){
        if(cell){cell.className="slot "+(typeClass[ev.tipo]||"res");
          if(currentRole==="admin"){
            const nome=ev.jogador_nome||"";
-           const convidado=ev.convidado?` · Convidado: ${ev.convidado}`:"";
-           cell.textContent=nome ? `${ev.tipo} · ${nome}${convidado}` : ev.tipo;
+           cell.textContent=nome || "Reserva";
            cell.title=cell.textContent;
          }else{cell.textContent=ev.tipo; cell.title=ev.tipo;}
        }

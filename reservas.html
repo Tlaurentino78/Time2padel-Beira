@@ -61,7 +61,7 @@ th{background:#f0f2f4;padding:7px 3px;font-size:11px;position:sticky;top:0;z-ind
 <div class="userbar"><a class="btn" href="index.html">🏠 Página Inicial</a><span id="userRole" class="role"></span><button class="logout" onclick="logout()">Sair</button></div>
 <div class="datebox"><b>Data:</b> <input id="date" type="date"></div>
 </div>
-<div id="dbStatus" style="margin:8px 0;padding:10px;border-radius:10px;background:#eef6ff;color:#234;font-size:13px;font-weight:700">🔄 A carregar reservas da base de dados…</div>
+<div id="dbStatus" style="margin:8px 0;padding:10px;border-radius:10px;background:#eef6ff;color:#234;font-size:13px;font-weight:700">A carregar reservas…</div>
 <div class="legend">
 <span class="free">Disponível</span><span class="res">Reserva</span><span class="game">Jogo</span><span class="class">Aula</span><span class="mix">Mix</span>
 </div>
@@ -301,10 +301,19 @@ async function alterarReserva(ev){
    const q=`${SB}/rest/v1/reservas?data_reserva=eq.${encodeURIComponent(date.value)}&campo=eq.${encodeURIComponent(courts[ci])}`;
    const check=await fetch(q,{headers:authHeaders()}); const existing=check.ok?await check.json():[];
    const toMin=x=>Number(String(x).slice(0,2))*60+Number(String(x).slice(3,5));
-   const overlaps=existing.some(r=>r.id!==ev.id&&(()=>{const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);return startMin<b&&startMin+duration>a;})());
+   const overlaps=existing.some(r=>(ev.id==null || r.id==null || r.id!==ev.id)&&(()=>{const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);return startMin<b&&startMin+duration>a;})());
    if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return;}
-   const payload={p_reserva_id:ev.id,p_data_reserva:date.value,p_hora_inicio:hora,p_duracao_min:duration,p_campo:courts[ci],p_tipo:selectedType,p_jogador_id:jogadorId,p_jogador_nome:jogadorNome,p_convidado:convidado||null};
-   const r=await fetch(`${SB}/rest/v1/rpc/alterar_reserva`,{method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},body:JSON.stringify(payload)});
+   let r;
+   if(ev.id){
+     const payload={p_reserva_id:ev.id,p_data_reserva:date.value,p_hora_inicio:hora,p_duracao_min:duration,p_campo:courts[ci],p_tipo:selectedType,p_jogador_id:jogadorId,p_jogador_nome:jogadorNome,p_convidado:convidado||null};
+     r=await fetch(`${SB}/rest/v1/rpc/alterar_reserva`,{method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},body:JSON.stringify(payload)});
+   }else if(currentRole==='admin'){
+     const filter=`data_reserva=eq.${encodeURIComponent(ev.data_reserva)}&hora_inicio=eq.${encodeURIComponent(String(ev.hora_inicio).slice(0,8))}&campo=eq.${encodeURIComponent(ev.campo)}`;
+     const payload={data_reserva:date.value,hora_inicio:hora,duracao_min:duration,campo:courts[ci],tipo:selectedType,jogador_id:jogadorId,jogador_nome:jogadorNome,convidado:convidado||null};
+     r=await fetch(`${SB}/rest/v1/reservas?${filter}`,{method:'PATCH',headers:{...authHeaders(true),Prefer:'return=minimal'},body:JSON.stringify(payload)});
+   }else{
+     throw new Error('A reserva foi lida sem o identificador. O Administrador deve atualizar a página e tentar novamente.');
+   }
    if(!r.ok)throw new Error(await r.text()||'Erro ao alterar');
    closeModal(); await renderReal(); alert('✅ Reserva alterada com sucesso.');
  }catch(e){alert('Não foi possível alterar a reserva.\n\n'+e.message)}
@@ -328,10 +337,18 @@ async function cancelarReserva(ev){
     return;
   }
   if(!confirm('Cancelar esta reserva?')) return;
-  const r=await fetch(`${SB}/rest/v1/rpc/cancelar_reserva`,{
-    method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},
-    body:JSON.stringify({p_reserva_id:ev.id})
-  });
+  let r;
+  if(ev.id){
+    r=await fetch(`${SB}/rest/v1/rpc/cancelar_reserva`,{
+      method:'POST',headers:{...authHeaders(true),Prefer:'return=minimal'},
+      body:JSON.stringify({p_reserva_id:ev.id})
+    });
+  }else if(currentRole==='admin'){
+    const filter=`data_reserva=eq.${encodeURIComponent(ev.data_reserva)}&hora_inicio=eq.${encodeURIComponent(String(ev.hora_inicio).slice(0,8))}&campo=eq.${encodeURIComponent(ev.campo)}`;
+    r=await fetch(`${SB}/rest/v1/reservas?${filter}`,{method:'DELETE',headers:{...authHeaders(true),Prefer:'return=minimal'}});
+  }else{
+    alert('A reserva foi lida sem o identificador. O Administrador deve atualizar a página.'); return;
+  }
   if(!r.ok){alert('Não foi possível cancelar a reserva.\n\n'+await r.text());return;}
   await renderReal();
 }
@@ -341,7 +358,7 @@ async function renderReal(){
   const status=document.getElementById("dbStatus");
   status.style.background="#eef6ff";
   status.style.color="#234";
-  status.textContent="🔄 A carregar reservas da base de dados…";
+  status.textContent="A carregar reservas…";
   try{
     if(!currentUser || !accessToken){
       status.style.background="#fff3cd";
@@ -350,7 +367,7 @@ async function renderReal(){
       return;
     }
     const targetDate=String(date.value).slice(0,10);
-    const selectFields="id,data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
+    const selectFields="data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_id,jogador_nome,convidado,utilizador_id";
     const url=`${SB}/rest/v1/reservas?select=${encodeURIComponent(selectFields)}&data_reserva=eq.${encodeURIComponent(targetDate)}&order=hora_inicio.asc`;
     const r=await fetch(url,{method:"GET",headers:{...authHeaders(),"Accept":"application/json","Accept-Profile":"public"},cache:"no-store"});
     const raw=await r.text();
@@ -388,7 +405,7 @@ async function renderReal(){
     });
     status.style.background=rows.length?"#e9f8ef":"#fff3cd";
     status.style.color=rows.length?"#176b38":"#664d03";
-    status.textContent=rows.length?`✅ ${rows.length} reserva(s) carregada(s) para ${targetDate}.`:`🟡 Nenhuma reserva encontrada para ${targetDate}.`;
+    status.textContent=rows.length?`✅ ${rows.length} reserva(s) carregada(s) para ${targetDate}.`:`Nenhuma reserva encontrada para ${targetDate}.`;
   }catch(e){
     console.error("Erro ao carregar reservas",e);
     status.style.background="#ffe5e5";

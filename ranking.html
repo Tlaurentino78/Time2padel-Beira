@@ -48,7 +48,7 @@ const levels=[
   {id:'F3',title:'F3'}
 ];
 async function api(path){
-  const r=await fetch(SB+path,{headers:{apikey:KEY}});
+  const r=await fetch(SB+path,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});
   const t=await r.text(); let d;
   try{d=t?JSON.parse(t):null}catch(e){d=t}
   if(!r.ok)throw Error(d?.message||String(d)||('HTTP '+r.status));
@@ -112,33 +112,18 @@ async function load(){
     const allowed=new Set(['M3','M4','M5','F3','F4','F5']);
     const playerById=new Map(), playerByName=new Map();
 
-    // Base manual de jogadores.html (localStorage).
-    let localPlayers=[];
-    try{
-      const raw=JSON.parse(localStorage.getItem('t2p_players')||'{}')||{};
-      localPlayers=Object.values(raw).map(p=>({
-        id:p.id?String(p.id):null,
-        nome:String(p.name||p.nome||'').trim(),
-        nivel:String(p.level||p.nivel||'').trim()
-      })).filter(p=>p.nome);
-    }catch(e){ localPlayers=[]; }
-
-    // Compatibilidade: se existir a tabela Supabase jogadores, também a usamos.
-    let dbPlayers=[];
-    try{
-      const d=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
-      dbPlayers=Array.isArray(d)?d.map(p=>({id:p.id?String(p.id):null,nome:String(p.nome||'').trim(),nivel:String(p.nivel||'').trim()})):[];
-    }catch(e){ dbPlayers=[]; }
-
-    // A base manual tem prioridade quando o mesmo nome existe nas duas fontes.
-    const merged=[]; const seen=new Set();
-    for(const p of [...localPlayers,...dbPlayers]){
-      const k=norm(p.nome); if(!k||seen.has(k))continue;
-      seen.add(k); merged.push(p);
-    }
+    // O Ranking usa exclusivamente a Base de Dados Central online (Supabase).
+    // Não usar localStorage aqui: pode conter IDs antigos de outro domínio/versão.
+    const dbPlayers=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
+    const merged=(Array.isArray(dbPlayers)?dbPlayers:[]).map(p=>({
+      id:p.id?String(p.id):null,
+      nome:String(p.nome||'').trim(),
+      nivel:String(p.nivel||'').trim()
+    })).filter(p=>p.nome);
     for(const p of merged){
       if(p.id)playerById.set(String(p.id),p);
-      const k=norm(p.nome); if(!playerByName.has(k))playerByName.set(k,[]);
+      const k=norm(p.nome);
+      if(!playerByName.has(k))playerByName.set(k,[]);
       playerByName.get(k).push(p);
     }
 

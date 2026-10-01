@@ -109,18 +109,43 @@ function getPlacements(t,teams,js){
 }
 async function load(){
   try{
-    // ESTA é a única base de jogadores usada pelo Ranking.
-    const players=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
     const allowed=new Set(['M3','M4','M5','F3','F4','F5']);
-    const playerById=new Map(players.map(p=>[String(p.id),p]));
-    const playerByName=new Map();
-    for(const p of players){
-      const k=norm(p.nome); if(!playerByName.has(k))playerByName.set(k,[]); playerByName.get(k).push(p);
+    const playerById=new Map(), playerByName=new Map();
+
+    // Base manual de jogadores.html (localStorage).
+    let localPlayers=[];
+    try{
+      const raw=JSON.parse(localStorage.getItem('t2p_players')||'{}')||{};
+      localPlayers=Object.values(raw).map(p=>({
+        id:p.id?String(p.id):null,
+        nome:String(p.name||p.nome||'').trim(),
+        nivel:String(p.level||p.nivel||'').trim()
+      })).filter(p=>p.nome);
+    }catch(e){ localPlayers=[]; }
+
+    // Compatibilidade: se existir a tabela Supabase jogadores, também a usamos.
+    let dbPlayers=[];
+    try{
+      const d=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');
+      dbPlayers=Array.isArray(d)?d.map(p=>({id:p.id?String(p.id):null,nome:String(p.nome||'').trim(),nivel:String(p.nivel||'').trim()})):[];
+    }catch(e){ dbPlayers=[]; }
+
+    // A base manual tem prioridade quando o mesmo nome existe nas duas fontes.
+    const merged=[]; const seen=new Set();
+    for(const p of [...localPlayers,...dbPlayers]){
+      const k=norm(p.nome); if(!k||seen.has(k))continue;
+      seen.add(k); merged.push(p);
     }
+    for(const p of merged){
+      if(p.id)playerById.set(String(p.id),p);
+      const k=norm(p.nome); if(!playerByName.has(k))playerByName.set(k,[]);
+      playerByName.get(k).push(p);
+    }
+
     const tournaments=await api('/rest/v1/torneios?select=id,nome,formato,nivel,data_torneio,publicado&publicado=eq.true&order=data_torneio.desc');
-    const totals={};
-    levels.forEach(l=>totals[l.id]={});
-    let completed=0;
+    const totals={}; levels.forEach(l=>totals[l.id]={});
+    let completed=0, playersFound=0;
+
     for(const t of tournaments){
       const teams=await api('/rest/v1/equipas?select=id,nome,posicao_inicial&torneio_id=eq.'+encodeURIComponent(t.id)+'&order=posicao_inicial.asc');
       if(!teams.length)continue;
@@ -129,25 +154,26 @@ async function load(){
       const js=await api('/rest/v1/jogos?select=id,equipa_a_id,equipa_b_id,fase,estado,score_a,score_b,ordem&torneio_id=eq.'+encodeURIComponent(t.id)+'&order=ordem.asc');
       const placements=getPlacements(t,teams,js); if(!placements)continue;
       completed++;
+
       for(let p=1;p<=8;p++){
         const eid=placements[p]; if(!eid)continue;
-        for(const link of links.filter(x=>x.equipa_id===eid)){
-          // Preferimos SEMPRE jogador_id. Só usamos o nome como fallback para registos antigos
-          // que ainda não tenham jogador_id, procurando exclusivamente na base jogadores.
+        for(const link of links.filter(x=>String(x.equipa_id)===String(eid))){
           let player=link.jogador_id?playerById.get(String(link.jogador_id)):null;
           if(!player&&link.nome_registado){
             const matches=playerByName.get(norm(link.nome_registado))||[];
             if(matches.length===1)player=matches[0];
           }
-          if(!player||!allowed.has(String(player.nivel||'')))continue;
-          const level=String(player.nivel); const id=String(player.id);
+          if(!player)continue;
+          const level=String(player.nivel||'').trim().toUpperCase();
+          if(!allowed.has(level))continue;
+          playersFound++;
+          const id=player.id?String(player.id):'name-'+norm(player.nome);
           if(!totals[level][id])totals[level][id]={id,nome:player.nome,nivel:level,pontos:0,mixes:0,p1:0,p2:0,p3:0,p4:0,p5:0,p6:0,p7:0,p8:0};
-          const r=totals[level][id];
-          r.pontos+=points[p]||0; r.mixes++;
-          r['p'+p]++;
+          const r=totals[level][id]; r.pontos+=points[p]||0; r.mixes++; r['p'+p]++;
         }
       }
     }
+
     const order=(a,b)=>b.pontos-a.pontos||b.p1-a.p1||b.p2-a.p2||b.p3-a.p3||b.mixes-a.mixes||a.nome.localeCompare(b.nome,'pt');
     let html='<div class="levels">';
     for(const l of levels){
@@ -161,7 +187,12 @@ async function load(){
     html+='</div>';
     $('summary').textContent=`${completed} Mix(es) concluído(s) considerados no ranking.`;
     $('ranking').innerHTML=html;
-  }catch(e){$('summary').textContent='';$('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>'}
+    if(completed>0&&playersFound===0){
+      $('ranking').insertAdjacentHTML('beforebegin','<div class="err" style="margin:10px 0">Os Mixes foram encontrados, mas nenhum jogador foi associado à Base de Dados. Confirme os jogadores em jogadores.html e os níveis M3/M4/M5/F3/F4/F5.</div>');
+    }
+  }catch(e){
+    $('summary').textContent=''; $('ranking').innerHTML='<div class="err">Erro ao carregar ranking: '+esc(e.message)+'</div>';
+  }
 }
 load();
 </script>

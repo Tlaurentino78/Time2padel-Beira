@@ -157,7 +157,28 @@ function openModal(ci,ti,t){
 function closeModal(){document.getElementById("modal").classList.remove("show");current=null}
 function setType(t){selectedType=t;document.querySelectorAll(".type").forEach(b=>b.classList.toggle("selected",b.dataset.type===t))}
 document.querySelectorAll(".type").forEach(b=>b.onclick=()=>setType(b.dataset.type));
-player.addEventListener("input",()=>{if(currentRole!=="admin")return;const q=player.value.trim().toLowerCase();suggestions.innerHTML="";if(!q)return;players.filter(p=>p.nome.toLowerCase().includes(q)).slice(0,8).forEach(p=>{const d=document.createElement("div");d.textContent=p.nome+(p.telefone?" · "+p.telefone:"");d.onclick=()=>{player.value=p.nome;player.dataset.playerId=p.id;suggestions.innerHTML=""};suggestions.appendChild(d)})});
+player.addEventListener("input",async()=>{
+ if(currentRole!=="admin")return;
+ const q=player.value.trim().toLowerCase();
+ suggestions.innerHTML="";
+ player.dataset.playerId="";
+ if(!q)return;
+ if(!players.length) await loadPlayers();
+ const matches=players.filter(p=>p.nome.toLowerCase().includes(q)).slice(0,8);
+ if(!matches.length){
+   const d=document.createElement("div");d.textContent="Nenhum jogador aprovado encontrado.";d.style.color="#777";suggestions.appendChild(d);return;
+ }
+ matches.forEach(p=>{
+   const d=document.createElement("div");
+   d.textContent=p.nome+(p.telefone?" · "+p.telefone:"");
+   d.onclick=()=>{player.value=p.nome;player.dataset.playerId=p.id;suggestions.innerHTML=""};
+   suggestions.appendChild(d);
+ });
+});
+player.addEventListener("focus",async()=>{
+ if(currentRole!=="admin")return;
+ if(!players.length) await loadPlayers();
+});
 async function checkReservationAccess(){
   if(currentRole==='admin') return true;
   try{

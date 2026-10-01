@@ -1,28 +1,94 @@
-<!doctype html><html lang="pt"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Time2Padel — Jogadores das Reservas</title>
 <style>
-body{margin:0;font-family:Arial;background:#f4f4f4;color:#222}header{background:#303030;color:white;padding:16px;font-size:21px;font-weight:800;text-align:center}.wrap{max-width:1000px;margin:auto;padding:14px}.card{background:white;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:14px}button,a{padding:10px 13px;border-radius:8px;border:1px solid #ccc;font-weight:800;text-decoration:none;display:inline-block}button{cursor:pointer}.green{background:#20b963;color:white;border-color:#20b963}.red{background:white;color:#b00020;border-color:#e2b4bb}.gray{background:white;color:#222}.top{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap}.msg{padding:12px;border-radius:8px;background:#f0f2f4;margin:10px 0;font-size:14px}.error{background:#ffe9ec;color:#9b1023}.ok{background:#e9faef;color:#176b35}.tableWrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}th{background:#f0f2f4}.badge{padding:5px 8px;border-radius:7px;font-size:12px;font-weight:800}.pending{background:#fff1cf;color:#8a5a00}.approved{background:#e5f8ea;color:#176b35}.rejected{background:#ffe6e9;color:#a20e25}.actions{display:flex;gap:6px;flex-wrap:wrap}
-</style></head><body>
-<header>🎾 Time2Padel — Jogadores das Reservas</header><div class="wrap">
-<div class="card top"><div><a class="gray" href="admin.html">← Administração</a> <a class="gray" href="index.html">🏠 Início</a></div><div>👑 Administrador <button class="gray" onclick="logout()">Sair</button></div></div>
-<div id="msg" class="msg">A carregar jogadores...</div>
-<div class="card"><h2>Inscrições</h2><p style="color:#666">Lista exclusiva das reservas, separada dos jogadores das competições.</p>
-<div class="tableWrap"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Estado</th><th>Acesso</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div></div></div>
+body{margin:0;font-family:Arial,sans-serif;background:#f4f4f4;color:#222}
+header{background:#303030;color:#fff;padding:10px;font-size:17px;font-weight:800;text-align:center}
+.wrap{max-width:900px;margin:auto;padding:8px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:8px}
+button,a{padding:7px 9px;border-radius:7px;border:1px solid #ccc;font-weight:800;text-decoration:none;display:inline-block;font-size:13px}
+button{cursor:pointer}.green{background:#20cf68;color:#fff;border-color:#20cf68}.red{background:#fff;color:#b00020;border-color:#e2b4bb}.gray{background:#fff;color:#222}
+.top{display:flex;gap:5px;justify-content:space-between;align-items:center;flex-wrap:wrap}.role{font-size:13px;color:#666}
+.msg{padding:8px;border-radius:7px;background:#f0f2f4;margin:6px 0;font-size:12px}.error{background:#ffe9ec;color:#9b1023}.ok{background:#e9faef;color:#176b35}
+.tableWrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:0;font-size:12px}th,td{padding:6px 5px;border-bottom:1px solid #eee;text-align:left}th{background:#f0f2f4;font-size:11px}
+.badge{padding:3px 5px;border-radius:7px;font-size:12px;font-weight:800}.pending{background:#fff1cf;color:#8a5a00}.approved{background:#e5f8ea;color:#176b35}.rejected{background:#ffe6e9;color:#a20e25}.actions{display:flex;gap:3px;flex-wrap:wrap}
+@media(max-width:600px){th:nth-child(3),td:nth-child(3){max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.actions button{font-size:10px;padding:5px 6px}.top{align-items:center}.role{font-size:11px}}
+</style>
+</head>
+<body>
+<header>🎾 Time2Padel — Jogadores das Reservas</header>
+<div class="wrap">
+<div class="card top">
+  <div><a class="gray" href="admin.html">← Administração</a> <a class="gray" href="index.html">🏠 Início</a></div>
+  <div><span id="role" class="role"></span> <button class="gray" onclick="logout()">Sair</button></div>
+</div>
+<div id="msg" class="msg">A verificar acesso...</div>
+<div class="card">
+  <h2 style="margin:0 0 5px;font-size:20px">Inscrições</h2>
+  <p style="color:#666;margin:4px 0 8px;font-size:12px">Lista exclusiva das reservas, separada dos jogadores das competições.</p>
+  <div class="tableWrap"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Estado</th><th>Acesso</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+</div>
 <script>
-const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc',token=localStorage.getItem('tp_access_token');
-const H=(json=false)=>{const h={apikey:KEY};if(json)h['Content-Type']='application/json';if(token)h.Authorization='Bearer '+token;return h};
-const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co';
+const KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+let token=localStorage.getItem('tp_access_token');
+let user=null;
+function headers(json=false){const h={apikey:KEY};if(json)h['Content-Type']='application/json';if(token)h.Authorization='Bearer '+token;return h}
 function logout(){localStorage.removeItem('tp_access_token');localStorage.removeItem('tp_refresh_token');location.href='index.html'}
-async function load(){
- const r=await fetch(SB+'/rest/v1/rpc/admin_listar_jogadores_reservas',{method:'POST',headers:{...H(true),Prefer:'return=representation'},body:'{}'});
- if(!r.ok)throw new Error(await r.text()||'Erro ao carregar a lista');
- const data=await r.json(),tb=document.getElementById('rows');tb.innerHTML='';
- if(!data.length){tb.innerHTML='<tr><td colspan="6">Ainda não existem inscrições.</td></tr>';return}
- data.forEach(p=>{const cls=p.estado==='Aprovado'?'approved':p.estado==='Rejeitado'?'rejected':'pending',acesso=p.role==='admin'?'👑 Administrador':'🎾 Jogador',adm=p.auth_user_id?(p.role==='admin'?`<button class="red" onclick="role('${p.id}',false)">Tirar Admin</button>`:`<button class="green" onclick="role('${p.id}',true)">👑 Tornar Admin</button>`):'';tb.insertAdjacentHTML('beforeend',`<tr><td><b>${esc(p.nome)}</b></td><td>${esc(p.telefone||'—')}</td><td>${esc(p.email||'—')}</td><td><span class="badge ${cls}">${esc(p.estado||'Pendente')}</span></td><td>${acesso}</td><td class="actions"><button class="green" onclick="estado('${p.id}','Aprovado')">Aprovar</button><button class="red" onclick="estado('${p.id}','Rejeitado')">Rejeitar</button>${adm}</td></tr>`)});
- const m=document.getElementById('msg');m.className='msg ok';m.textContent=data.length+' jogador(es) encontrado(s).';
+async function init(){
+ if(!token){location.href='reservas.html';return}
+ try{
+  let r=await fetch(SB+'/auth/v1/user',{headers:headers()});
+  if(!r.ok)throw new Error('Sessão expirada.');
+  user=await r.json();
+  r=await fetch(SB+'/rest/v1/perfis?select=role&id=eq.'+encodeURIComponent(user.id).replace('%20',''),{headers:headers()});
+  if(!r.ok)throw new Error('Não foi possível verificar o perfil.');
+  const p=await r.json();
+  if(!p[0]||p[0].role!=='admin')throw new Error('Acesso reservado ao administrador.');
+  document.getElementById('role').textContent='👑 Administrador';
+  document.getElementById('msg').style.display='none';
+  await load();
+ }catch(e){
+  const m=document.getElementById('msg');m.className='msg error';m.textContent='⛔ '+e.message;
+ }
 }
-async function estado(id,s){const r=await fetch(SB+'/rest/v1/rpc/admin_estado_jogador_reserva',{method:'POST',headers:{...H(true),Prefer:'return=minimal'},body:JSON.stringify({p_id:id,p_estado:s})});if(!r.ok){alert(await r.text());return}load()}
-async function role(id,a){if(!confirm(a?'Tornar este jogador Administrador?':'Retirar acesso de Administrador?'))return;const r=await fetch(SB+'/rest/v1/rpc/admin_definir_staff',{method:'POST',headers:{...H(true),Prefer:'return=minimal'},body:JSON.stringify({p_jogador_reserva_id:id,p_admin:a})});if(!r.ok){alert(await r.text());return}load()}
-(async()=>{if(!token){location.href='reservas.html';return}try{const u=await fetch(SB+'/auth/v1/user',{headers:H()});if(!u.ok)throw Error('Sessão expirada');await load()}catch(e){const m=document.getElementById('msg');m.className='msg error';m.textContent='⛔ '+e.message}})();
-</script></body></html>
+async function load(){
+ const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,email,estado,auth_user_id,created_at&order=created_at.desc',{headers:headers()});
+ if(!r.ok){document.getElementById('msg').className='msg error';document.getElementById('msg').textContent='Erro ao carregar inscrições.';return}
+ let data=await r.json();
+ const pr=await fetch(SB+'/rest/v1/perfis?select=role,jogador_reserva_id',{headers:headers()});
+ if(!pr.ok){document.getElementById('msg').className='msg error';document.getElementById('msg').textContent='Erro ao carregar os níveis de acesso.';return}
+ const roles=await pr.json();
+ const roleMap={}; roles.forEach(x=>{if(x.jogador_reserva_id) roleMap[x.jogador_reserva_id]=x.role});
+ data=data.map(x=>({...x,role:roleMap[x.id]||'jogador'}));
+ const tbody=document.getElementById('rows');tbody.innerHTML='';
+ if(!data.length){tbody.innerHTML='<tr><td colspan="6">Ainda não existem inscrições.</td></tr>';return}
+ data.forEach(p=>{
+  const tr=document.createElement('tr');
+  const cls=p.estado==='Aprovado'?'approved':p.estado==='Rejeitado'?'rejected':'pending';
+  const acesso = p.role==='admin' ? '👑 Administrador' : '🎾 Jogador';
+  const adminBtn = p.auth_user_id ? (p.role==='admin' ? `<button class="red" onclick="setRole('${p.id}','jogador')">Tirar Admin</button>` : `<button class="green" onclick="setRole('${p.id}','admin')">👑 Tornar Admin</button>`) : '—';
+  tr.innerHTML=`<td><b>${esc(p.nome)}</b></td><td>${esc(p.telefone||'—')}</td><td>${esc(p.email||'—')}</td><td><span class="badge ${cls}">${esc(p.estado)}</span></td><td>${acesso}</td><td class="actions"><button class="green" onclick="setStatus('${p.id}','Aprovado')">Aprovar</button><button class="red" onclick="setStatus('${p.id}','Rejeitado')">Rejeitar</button>${adminBtn}</td>`;
+  tbody.appendChild(tr);
+ });
+}
+function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+async function setRole(id,role){
+ if(!confirm(role==='admin'?'Tornar este jogador Administrador?':'Retirar acesso de Administrador?'))return;
+ const r=await fetch(SB+'/rest/v1/rpc/definir_staff_admin',{method:'POST',headers:{...headers(true),Prefer:'return=minimal'},body:JSON.stringify({p_jogador_reserva_id:id,p_admin:role==='admin'})});
+ if(!r.ok){const t=await r.text();alert('Não foi possível alterar o acesso.\n\n'+t);return;}
+ await load();
+}
+async function setStatus(id,status){
+ const r=await fetch(SB+'/rest/v1/jogadores_reservas?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{...headers(true),Prefer:'return=minimal'},body:JSON.stringify({estado:status})});
+ if(!r.ok){alert('Não foi possível alterar o estado.');return}
+ await load();
+}
+init();
+</script>
+</body>
+</html>

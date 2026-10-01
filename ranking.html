@@ -37,7 +37,7 @@ const SB='https://gvsotgzntwfpikigoxdj.supabase.co';
 const KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
 const points={1:10,2:8,3:6,4:5,5:4,6:3,7:2,8:1};
 const levels=[
   {id:'M5',title:'M5'},
@@ -168,16 +168,33 @@ async function load(){
           if(link.nome_registado) candidateNames.push(String(link.nome_registado).trim());
         }
         const seenNames=new Set();
+        const teamLinks=links.filter(x=>String(x.equipa_id)===String(eid));
         for(const candidate of candidateNames){
           const nk=norm(candidate); if(!nk||seenNames.has(nk))continue; seenNames.add(nk);
           let player=null;
-          const matches=playerByName.get(nk)||[];
-          if(matches.length===1) player=matches[0];
+
+          // 1) ID gravado no Mix.
+          const exactLink=teamLinks.find(x=>norm(x.nome_registado)===nk && x.jogador_id);
+          if(exactLink) player=playerById.get(String(exactLink.jogador_id))||null;
+
+          // 2) Nome exacto.
           if(!player){
-            for(const link of links.filter(x=>String(x.equipa_id)===String(eid))){
-              if(norm(link.nome_registado)===nk && link.jogador_id){ player=playerById.get(String(link.jogador_id)); if(player)break; }
-            }
+            const matches=playerByName.get(nk)||[];
+            if(matches.length===1) player=matches[0];
           }
+
+          // 3) Nome abreviado / nome completo. Ex.: Miguel F -> Miguel Fernandes.
+          if(!player){
+            const ct=nk.split(' ').filter(Boolean);
+            const fuzzy=[];
+            for(const p of merged){
+              const pt=norm(p.nome).split(' ').filter(Boolean);
+              const ok=ct.length>0 && ct.every(a=>pt.some(b=>b===a || b.startsWith(a)));
+              if(ok) fuzzy.push(p);
+            }
+            if(fuzzy.length===1) player=fuzzy[0];
+          }
+
           if(!player)continue;
           const level=String(player.nivel||'').trim().toUpperCase();
           if(!allowed.has(level))continue;

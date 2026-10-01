@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel — Inscrição</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f5f6f8;color:#222}
+.box{width:min(460px,calc(100% - 28px));margin:45px auto;background:#fff;padding:24px;border-radius:18px;box-shadow:0 10px 35px #0001}
+h1{margin-top:0}label{display:block;font-weight:800;margin:14px 0 6px}
+input{width:100%;box-sizing:border-box;padding:13px;border:1px solid #aaa;border-radius:9px;font-size:16px}
+button,.back{display:block;width:100%;box-sizing:border-box;padding:13px;margin-top:18px;border:0;border-radius:10px;font-weight:800;font-size:16px;text-align:center;text-decoration:none}
+button{background:#111;color:#fff}.back{background:#eee;color:#222}
+.msg{margin-top:14px;font-size:14px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>🎾 Inscrição Time2Padel</h1>
+<p>Cria a tua conta para poderes reservar campos.</p>
+
+<label>Nome completo</label>
+<input id="nome" autocomplete="name" placeholder="Nome e apelido">
+
+<label>Telefone</label>
+<input id="telefone" type="tel" autocomplete="tel" placeholder="+258 ...">
+
+<label>Email</label>
+<input id="email" type="email" autocomplete="email" placeholder="O teu email">
+
+<label>Password</label>
+<input id="password" type="password" autocomplete="new-password" placeholder="Escolhe uma password">
+
+<button id="btn" onclick="signup()">Criar conta</button>
+<div id="msg" class="msg"></div>
+<a class="back" href="index.html">🏠 Voltar</a>
+</div>
+
+<script>
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co';
+const KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+
+async function signup(){
+ const nome=document.getElementById('nome').value.trim();
+ const telefone=document.getElementById('telefone').value.trim();
+ const email=document.getElementById('email').value.trim();
+ const password=document.getElementById('password').value;
+ const msg=document.getElementById('msg');
+ const btn=document.getElementById('btn');
+ msg.textContent='';
+ if(!nome||!email||!password){msg.textContent='Preenche nome, email e password.';return}
+ if(password.length<6){msg.textContent='A password deve ter pelo menos 6 caracteres.';return}
+ btn.disabled=true;btn.textContent='A criar conta...';
+ try{
+   const r=await fetch(SB+'/auth/v1/signup',{
+     method:'POST',
+     headers:{apikey:KEY,'Content-Type':'application/json'},
+     body:JSON.stringify({email,password,data:{nome,telefone}})
+   });
+   const data=await r.json();
+   if(!r.ok) throw new Error(data.msg||data.error_description||'Não foi possível criar a conta.');
+   msg.style.color='#167a3a';
+   if(data.session){
+     msg.textContent='✅ Conta criada. O teu registo ficou Pendente de aprovação pelo administrador.';
+   }else{
+     msg.textContent='✅ Inscrição recebida. Confirma o email, se for solicitado. Depois aguarda a aprovação do administrador.';
+   }
+   btn.disabled=true;
+ }catch(e){
+   msg.style.color='#b00020';
+   msg.textContent=e.message;
+   btn.disabled=false;btn.textContent='Criar conta';
+ }
+}
+</script>
+</body>
+</html>

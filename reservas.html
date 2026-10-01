@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Time2Padel Beira — Reservas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6f8;color:#222}
+header{background:#111;color:#fff;padding:16px;text-align:center;font-size:21px;font-weight:800}
+.wrap{max-width:1200px;margin:auto;padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.btn{background:#fff;border:1px solid #ddd;border-radius:9px;padding:10px 14px;text-decoration:none;color:#222;font-weight:800}
+.datebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:9px 12px}
+input,select{padding:11px;border:1px solid #aaa;border-radius:9px;font-size:16px;width:100%}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.legend span{padding:7px 11px;border-radius:8px;color:#fff;font-weight:800;font-size:13px}
+.res{background:#27ae60}.game{background:#2980b9}.class{background:#8e44ad}.mix{background:#e67e22}.free{background:#fff;color:#555!important;border:1px solid #ddd}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden}.scroll{overflow:auto}
+table{border-collapse:collapse;min-width:900px;width:100%}th,td{border:1px solid #ddd;text-align:center}
+th{background:#f0f2f4;padding:9px;font-size:13px;position:sticky;top:0;z-index:3}th:first-child{left:0;z-index:4}
+.court{font-weight:800;background:#fff;min-width:125px;position:sticky;left:0;z-index:2}
+.slot{height:42px;min-width:74px;padding:2px;border:0;width:100%;font-size:11px;font-weight:800;cursor:pointer}
+.slot.free{background:#fff;color:#777}.slot.res{background:#27ae60;color:#fff}.slot.game{background:#2980b9;color:#fff}.slot.class{background:#8e44ad;color:#fff}.slot.mix{background:#e67e22;color:#fff}
+.note{font-size:12px;color:#666;margin-top:12px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}.box{background:#fff;border-radius:18px;width:min(680px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mhead{padding:18px 20px;border-bottom:1px solid #eee;font-size:20px;font-weight:800}.mbody{padding:18px 20px}.field{margin-bottom:15px}.field label{display:block;font-weight:800;margin-bottom:7px}
+.hint{font-size:12px;color:#777;margin-top:5px}.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}.actions button{padding:12px 18px;border-radius:10px;border:1px solid #ccc;font-weight:800}
+.save{background:#111;color:#fff!important}.cancel{background:#fff}
+.suggestions{border:1px solid #ddd;border-radius:9px;margin-top:4px;overflow:hidden;background:#fff}.suggestions div{padding:11px;cursor:pointer}.suggestions div:hover{background:#f2f2f2}
+.typegrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.type{border:0;border-radius:10px;padding:12px 6px;color:#fff;font-weight:800;cursor:pointer}.type.selected{outline:3px solid #111;outline-offset:1px}
+@media(max-width:600px){header{font-size:19px}.wrap{padding:10px}.typegrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>🎾 Time2Padel Beira — Reservas e Agenda</header>
+<div class="wrap">
+<div class="top">
+<a class="btn" href="index.html">🏠 Página Inicial</a>
+<div class="datebox"><b>Data:</b> <input id="date" type="date"></div>
+</div>
+<div class="legend">
+<span class="free">Disponível</span><span class="res">Reserva</span><span class="game">Jogo</span><span class="class">Aula</span><span class="mix">Mix</span>
+</div>
+<div class="card"><div class="scroll">
+<table><thead><tr><th>Campo</th><script>
+const times=[];for(let h=7;h<23;h++){times.push(String(h).padStart(2,'0')+':00');times.push(String(h).padStart(2,'0')+':30')}
+document.write(times.map(t=>`<th>${t}</th>`).join(''));
+</script></tr></thead><tbody id="body"></tbody></table>
+</div></div>
+<div class="note">Intervalos de 30 minutos, das 07:00 às 23:00. Toca num horário disponível para criar o evento.</div>
+</div>
+
+<div id="modal" class="modal">
+<div class="box">
+<div class="mhead">📅 Novo evento — <span id="modalTitle"></span></div>
+<div class="mbody">
+<div class="field"><label>Jogador</label><input id="player" autocomplete="off" placeholder="Escreve o nome do jogador..."><div id="suggestions" class="suggestions"></div><div class="hint">Começa a escrever e o sistema procura jogadores existentes.</div></div>
+<div class="field"><label>Convidado</label><input id="guest" placeholder="Nome de alguém de fora, se existir"></div>
+<div class="field"><label>Tipo de Reserva</label>
+<div class="typegrid">
+<button class="type res" data-type="Reserva">Reserva</button>
+<button class="type game" data-type="Jogo">Jogo</button>
+<button class="type class" data-type="Aula">Aula</button>
+<button class="type mix" data-type="Mix">Mix</button>
+</div></div>
+<div class="field"><label>Duração</label><select id="duration"><option value="30">30 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></div>
+<div class="actions"><button class="cancel" onclick="closeModal()">Cancelar</button><button class="save" onclick="saveDemo()">Guardar</button></div>
+</div></div></div>
+
+<script>
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';
+const courts=["Visioluz","Mozfert","Orangefreight","Lenmed / MSS","Chiveve","Academia Time2Padel"];
+const date=document.getElementById("date");const player=document.getElementById("player");const suggestions=document.getElementById("suggestions");
+let players=[],selectedType="Reserva",current=null;
+function localDate(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}date.value=localDate();
+
+async function loadPlayers(){
+ try{const r=await fetch(SB+'/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc',{headers:{apikey:KEY}});
+ if(r.ok)players=await r.json();}catch(e){}
+}
+function render(){
+ const b=document.getElementById("body");b.innerHTML="";
+ courts.forEach((c,ci)=>{const tr=document.createElement("tr");const td=document.createElement("td");td.className="court";td.textContent="Campo "+c;tr.appendChild(td);
+ times.forEach((t,ti)=>{const x=document.createElement("td"),btn=document.createElement("button");btn.className="slot free";btn.textContent="Disponível";btn.onclick=()=>openModal(ci,ti,t);x.appendChild(btn);tr.appendChild(x)});b.appendChild(tr)});
+}
+function openModal(ci,ti,t){current={ci,ti,t};document.getElementById("modalTitle").textContent=`Campo ${courts[ci]} · ${date.value} · ${t}`;document.getElementById("modal").classList.add("show");player.value="";document.getElementById("guest").value="";document.getElementById("duration").value="30";setType("Reserva");suggestions.innerHTML="";player.focus()}
+function closeModal(){document.getElementById("modal").classList.remove("show");current=null}
+function setType(t){selectedType=t;document.querySelectorAll(".type").forEach(b=>b.classList.toggle("selected",b.dataset.type===t))}
+document.querySelectorAll(".type").forEach(b=>b.onclick=()=>setType(b.dataset.type));
+player.addEventListener("input",()=>{const q=player.value.trim().toLowerCase();suggestions.innerHTML="";if(!q)return;players.filter(p=>p.nome.toLowerCase().includes(q)).slice(0,8).forEach(p=>{const d=document.createElement("div");d.textContent=p.nome+(p.nivel?" · "+p.nivel:"");d.onclick=()=>{player.value=p.nome;suggestions.innerHTML=""};suggestions.appendChild(d)})});
+async function saveDemo(){
+ if(!player.value.trim()&&!document.getElementById("guest").value.trim()){alert("Indica o jogador ou um convidado.");return}
+ const {ci,ti}=current, duration=Number(document.getElementById("duration").value);
+ const hora=times[ti];
+ const startMin=Number(hora.slice(0,2))*60+Number(hora.slice(3));
+ if(startMin+duration>23*60){alert("A duração ultrapassa as 23:00.");return}
+ const jogadorNome=player.value.trim();
+ const convidado=document.getElementById("guest").value.trim();
+ const p=players.find(x=>x.nome===jogadorNome);
+ const payload={
+   data_reserva:date.value,
+   hora_inicio:hora,
+   duracao_min:duration,
+   campo:courts[ci],
+   tipo:selectedType,
+   jogador_id:p?.id||null,
+   jogador_nome:jogadorNome||null,
+   convidado:convidado||null
+ };
+ try{
+   const q=`${SB}/rest/v1/reservas?data_reserva=eq.${encodeURIComponent(date.value)}&campo=eq.${encodeURIComponent(courts[ci])}`;
+   const check=await fetch(q,{headers:{apikey:KEY}});
+   const existing=check.ok?await check.json():[];
+   const toMin=s=>Number(String(s).slice(0,2))*60+Number(String(s).slice(3,5));
+   const overlaps=existing.some(r=>{
+     const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);
+     return startMin<b && startMin+duration>a;
+   });
+   if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return}
+   const ins=await fetch(`${SB}/rest/v1/reservas`,{
+     method:"POST",
+     headers:{apikey:KEY,"Content-Type":"application/json",Prefer:"return=minimal"},
+     body:JSON.stringify(payload)
+   });
+   if(!ins.ok){const txt=await ins.text();throw new Error(txt||"Erro ao guardar");}
+   closeModal();
+   await renderReal();
+   alert("✅ Reserva guardada com sucesso.");
+ }catch(e){
+   alert("Não foi possível guardar a reserva. Confirma primeiro se a tabela 'reservas' já foi criada no Supabase.\n\n"+e.message);
+ }
+}
+
+async function renderReal(){
+ render();
+ try{
+   const q=`${SB}/rest/v1/reservas?select=data_reserva,hora_inicio,duracao_min,campo,tipo,jogador_nome,convidado&data_reserva=eq.${encodeURIComponent(date.value)}`;
+   const r=await fetch(q,{headers:{apikey:KEY}});
+   if(!r.ok)return;
+   const rows=await r.json();
+   const typeClass={Reserva:"res",Jogo:"game",Aula:"class",Mix:"mix"};
+   const toMin=s=>Number(String(s).slice(0,2))*60+Number(String(s).slice(3,5));
+   rows.forEach(ev=>{
+     const ci=courts.indexOf(ev.campo); if(ci<0)return;
+     const start=toMin(ev.hora_inicio), ti=times.findIndex(x=>toMin(x)===start); if(ti<0)return;
+     const n=Math.max(1,Number(ev.duracao_min)/30);
+     const cells=document.querySelectorAll("#body tr")[ci]?.querySelectorAll(".slot"); if(!cells)return;
+     for(let i=ti;i<Math.min(ti+n,cells.length);i++){cells[i].className="slot "+(typeClass[ev.tipo]||"res");cells[i].textContent=ev.tipo;}
+   });
+ }catch(e){}
+}
+date.addEventListener("change",renderReal);renderReal();loadPlayers();
+date.addEventListener("change",render);render();loadPlayers();
+</script>
+</body>
+</html>

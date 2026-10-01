@@ -104,7 +104,7 @@ let players=[],selectedType="Reserva",current=null;
 function localDate(){const d=new Date();return new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}date.value=localDate();
 
 
-let accessToken=null,currentUser=null,currentRole="jogador",currentReservaPlayer=null;
+var accessToken=null,currentUser=null,currentRole="jogador",currentReservaPlayer=null;
 function authHeaders(json=false){const h={apikey:KEY};if(json)h["Content-Type"]="application/json";if(accessToken)h.Authorization="Bearer "+accessToken;return h}
 async function doLogin(){
  const email=document.getElementById("loginEmail").value.trim(), password=document.getElementById("loginPassword").value;

@@ -29,7 +29,16 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}
 .final{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}.final h2{margin:0;background:var(--g);color:#fff;padding:12px}
 .pos{display:flex;gap:12px;align-items:center;padding:12px 13px;border-bottom:1px solid #eee}.pos.champion{background:#fff8d8;border-left:6px solid #f2c300}.num{width:42px;text-align:center;font-weight:900;font-size:18px}.fn{font-weight:800}.championLabel{margin-left:auto;color:#b18400;font-weight:900;font-size:12px}
 .hidden{display:none}.note{font-size:12px;color:#777;margin-top:6px}
-@media(max-width:800px){.teams{grid-template-columns:1fr 1fr}.board{overflow-x:auto;grid-template-columns:repeat(4,220px)}.groups{grid-template-columns:1fr}}
+@media(max-width:800px){
+.teams{grid-template-columns:1fr 1fr}
+.board{display:grid;grid-template-columns:repeat(4,230px);overflow-x:auto}
+.court{min-width:230px}
+.match{height:220px;min-height:220px;padding:10px 6px}
+.names{width:100%;min-height:64px;display:flex;flex-direction:column;justify-content:center;word-break:break-word}
+.scores{width:100%;height:48px;flex:0 0 48px;margin-top:8px}
+.score{width:58px;height:42px;flex:0 0 58px}
+.groups{grid-template-columns:1fr}
+}
 
 .playerAdmin{display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center}
 .playerAdmin input,.playerAdmin select{width:100%;height:42px;border:1px solid #aaa;border-radius:7px;padding:8px;font-size:15px}
@@ -80,7 +89,7 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:center;font-size:13px}
 <div id="final"><div class="final"><h2>🏆 CLASSIFICAÇÃO FINAL — 1.º AO 8.º</h2><div id="fl"></div></div></div>
 
 <div class="card" style="margin-top:12px"><div class="body">
-<button id="reset">Apagar resultados</button><div class="note">Os resultados ficam guardados neste navegador.</div>
+<button id="reset">Apagar resultados</button><div class="note">Os resultados ficam guardados neste navegador. Ao corrigir o vencedor de um jogo, os resultados das fases seguintes que dependem desse jogo são automaticamente limpos e recalculados.</div>
 </div></div>
 </div>
 
@@ -175,15 +184,17 @@ function team(code){
  if(/^A[1-4]$/.test(code)) return teams[Number(code[1])-1] || "A definir";
  if(/^B[1-4]$/.test(code)) return teams[4+Number(code[1])-1] || "A definir";
  if(/^[1-4][AB]$/.test(code)){
-   const r=group(code[1]);
-   return r[Number(code[0])-1]?.name || "A aguardar";
+  const r=group(code[1]);
+  return r[Number(code[0])-1]?.name || "A aguardar";
  }
- const m=byId(code.slice(1) ? "m"+code.slice(1) : "");
- if(!m) return "A aguardar";
- const w=win(m.id);
- if(!w) return "A aguardar";
- const side = code[0]==="W" ? w : (w==="a" ? "b" : "a");
- return team(m[side]);
+ if(/^[WL]\d+$/.test(code)){
+  const m=byId("m"+code.slice(1));
+  if(!m)return "A aguardar";
+  const w=win(m.id);
+  if(!w)return "A aguardar";
+  return code[0]==="W" ? team(m[w]) : team(m[w==="a"?"b":"a"]);
+ }
+ return "A aguardar";
 }
 
 function editReady(m){
@@ -218,21 +229,39 @@ function renderBoard(){
  });
 }
 
+function downstreamIds(id){
+ const deps={
+  m1:["m13","m14","m16","m17","m18","m19","m20"],m2:["m13","m14","m16","m17","m18","m19","m20"],
+  m3:["m13","m14","m16","m17","m18","m19","m20"],m4:["m13","m14","m16","m17","m18","m19","m20"],
+  m5:["m13","m14","m16","m17","m18","m19","m20"],m6:["m13","m14","m16","m17","m18","m19","m20"],
+  m7:["m13","m14","m16","m17","m18","m19","m20"],m8:["m13","m14","m16","m17","m18","m19","m20"],
+  m9:["m13","m14","m16","m17","m18","m19","m20"],m10:["m13","m14","m16","m17","m18","m19","m20"],
+  m11:["m13","m14","m16","m17","m18","m19","m20"],m12:["m13","m14","m16","m17","m18","m19","m20"],
+  m13:["m15","m18"],m14:["m15","m18"],m15:[],m16:["m19","m20"],m17:["m19","m20"],m18:[],m19:[],m20:[]
+ };
+ return deps[id]||[];
+}
+function invalidateDownstream(id){
+ const seen=new Set(),todo=[...downstreamIds(id)];
+ while(todo.length){
+  const x=todo.shift();
+  if(seen.has(x)) continue;
+  seen.add(x);
+  todo.push(...downstreamIds(x));
+ }
+ seen.forEach(x=>{scores[x]=["",""];});
+}
+
 function saveOne(id,i,v){
+ const oldWinner=win(id);
  scores[id]=scores[id]||["",""];
  scores[id][i]=String(v).replace(/\D/g,"").slice(0,2);
+ const newWinner=win(id);
+ if(oldWinner!==newWinner) invalidateDownstream(id);
  persist();
- if(sc(id)){
-   const active=document.activeElement;
-   renderAll();
-   // Se o resultado acabou de ser completado, manter o utilizador na mesma zona.
-   if(active && active.dataset && active.dataset.id===id){
-     const next=document.querySelector('.score[data-id="'+id+'"][data-i="'+i+'"]');
-     if(next){next.focus();next.select();}
-   }
- } else {
-   renderGroups();
- }
+ renderAll();
+ const next=document.querySelector('.score[data-id="'+id+'"][data-i="'+i+'"]');
+ if(next){next.focus();next.select();}
 }
 
 function renderGroups(){

@@ -258,15 +258,18 @@ async function checkReservationAccess(){
 }
 async function enviarEmailConfirmacao(reserva){
   try{
-    if(!reserva.email){
-      console.log("Jogador sem email — confirmação não enviada.");
-      return false;
+    // Para uma reserva feita pelo próprio jogador, usa também o email da conta
+    // caso o campo email da ficha de jogador esteja vazio.
+    const destinatario = String(reserva.email || (currentRole !== "admin" ? (currentUser?.email || "") : "")).trim();
+    if(!destinatario){
+      console.warn("Sem email de destino para a confirmação.");
+      return {ok:false,reason:"O jogador não tem email registado."};
     }
     const r=await fetch(`${SB}/functions/v1/bright-function`,{
       method:"POST",
       headers:{...authHeaders(true),"Content-Type":"application/json"},
       body:JSON.stringify({
-        email:reserva.email,
+        email:destinatario,
         nome:reserva.jogador_nome,
         data:reserva.data_reserva,
         hora:String(reserva.hora_inicio).slice(0,5),
@@ -276,12 +279,15 @@ async function enviarEmailConfirmacao(reserva){
       })
     });
     const raw=await r.text();
-    if(!r.ok){ console.error("Erro ao enviar email:",raw); return false; }
+    if(!r.ok){
+      console.error("Erro ao enviar email:",raw);
+      return {ok:false,reason:`Supabase/Edge Function (${r.status}): ${raw.slice(0,250)}`};
+    }
     console.log("Email de confirmação enviado:",raw);
-    return true;
+    return {ok:true,reason:""};
   }catch(e){
     console.error("Erro no email:",e);
-    return false;
+    return {ok:false,reason:e.message||"Erro de ligação à função de email."};
   }
 }
 
@@ -317,9 +323,11 @@ async function saveDemo(){
    if(!ins.ok)throw new Error(await ins.text()||"Erro ao guardar");
    const savedRows=await ins.json();
    const saved=Array.isArray(savedRows)?savedRows[0]:savedRows;
-   const emailOk=await enviarEmailConfirmacao({...payload,id:saved?.id,email:jogadorEmail});
+   const emailResult=await enviarEmailConfirmacao({...payload,id:saved?.id,email:jogadorEmail});
    closeModal(); await renderReal();
-   alert(emailOk ? "✅ Reserva guardada e email de confirmação enviado." : "✅ Reserva guardada. ⚠️ Email de confirmação não enviado.");
+   alert(emailResult.ok
+     ? "✅ Reserva guardada e email de confirmação enviado."
+     : "✅ Reserva guardada. ⚠️ Email de confirmação não enviado.\n\nMotivo: "+emailResult.reason);
  }catch(e){alert("Não foi possível guardar a reserva.\n\n"+e.message)}
 }
 async function alterarReserva(ev){

@@ -130,7 +130,7 @@ async function doLogin(){
 async function loadRole(){
  try{
    const r=await fetch(SB+"/rest/v1/perfis?select=role,jogador_reserva_id,email&id=eq."+encodeURIComponent(currentUser.id),{headers:authHeaders()});
-   if(r.ok){const rows=await r.json();if(rows[0]){currentRole=rows[0].role||"jogador";if(rows[0].jogador_reserva_id){const rr=await fetch(SB+"/rest/v1/jogadores_reservas?select=id,nome,telefone,email,estado&id=eq."+encodeURIComponent(rows[0].jogador_reserva_id),{headers:authHeaders()});if(rr.ok){const a=await rr.json();currentReservaPlayer=a[0]||null;}}}}
+   if(r.ok){const rows=await r.json();if(rows[0]){currentRole=rows[0].role||"jogador";if(rows[0].jogador_reserva_id){const rr=await fetch(SB+"/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&id=eq."+encodeURIComponent(rows[0].jogador_reserva_id),{headers:authHeaders()});if(rr.ok){const a=await rr.json();currentReservaPlayer=a[0]||null;}}}}
  }catch(e){}
 }
 function showApp(){
@@ -154,7 +154,7 @@ async function restoreSession(){
 
 async function loadPlayers(){
  try{
-   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,email,estado&estado=eq.Aprovado&order=nome.asc',{headers:authHeaders()});
+   const r=await fetch(SB+'/rest/v1/jogadores_reservas?select=id,nome,telefone,estado&estado=eq.Aprovado&order=nome.asc',{headers:authHeaders()});
    if(r.ok)players=await r.json();
  }catch(e){players=[]}
 }
@@ -256,35 +256,6 @@ async function checkReservationAccess(){
     return rows[0]?.estado==='Aprovado';
   }catch(e){return false}
 }
-async function enviarEmailConfirmacao(reserva){
-  try{
-    if(!reserva.email){
-      console.log("Jogador sem email — confirmação não enviada.");
-      return false;
-    }
-    const r=await fetch(`${SB}/functions/v1/enviar-email-reserva`,{
-      method:"POST",
-      headers:{...authHeaders(true),"Content-Type":"application/json"},
-      body:JSON.stringify({
-        email:reserva.email,
-        nome:reserva.jogador_nome,
-        data:reserva.data_reserva,
-        hora:String(reserva.hora_inicio).slice(0,5),
-        campo:reserva.campo,
-        tipo:reserva.tipo,
-        duracao:reserva.duracao_min
-      })
-    });
-    const raw=await r.text();
-    if(!r.ok){ console.error("Erro ao enviar email:",raw); return false; }
-    console.log("Email de confirmação enviado:",raw);
-    return true;
-  }catch(e){
-    console.error("Erro no email:",e);
-    return false;
-  }
-}
-
 async function saveDemo(){
  if(currentReserva) return alterarReserva(currentReserva);
  if(!(await checkReservationAccess())){alert("⏳ A tua conta ainda não está aprovada para fazer reservas. Aguarda a aprovação do administrador.");return;}
@@ -294,17 +265,12 @@ async function saveDemo(){
  if(startMin+duration>23*60){alert("A duração ultrapassa as 23:00.");return}
  const convidado=currentRole==="admin" ? document.getElementById("guest").value.trim() : "";
  if(currentRole!=="admin" && document.getElementById("guest").value.trim()){alert("Apenas o Administrador pode adicionar Convidados.");return;}
- let jogadorId=null,jogadorNome="",jogadorEmail="";
+ let jogadorId=null,jogadorNome="";
  if(currentRole==="admin"){
    jogadorNome=player.value.trim();
    const p=players.find(x=>x.id===player.dataset.playerId)||players.find(x=>x.nome===jogadorNome);
    jogadorId=p?.id||null;
-   jogadorEmail=p?.email||"";
- }else{
-   jogadorId=currentReservaPlayer?.id||null;
-   jogadorNome=currentReservaPlayer?.nome||"";
-   jogadorEmail=currentReservaPlayer?.email||"";
- }
+ }else{jogadorId=currentReservaPlayer?.id||null;jogadorNome=currentReservaPlayer?.nome||"";}
  if(!jogadorId){alert(currentRole==="admin"?"Seleciona um jogador aprovado.":"A tua conta ainda não está ligada a um jogador de reservas aprovado.");return;}
  try{
    const q=`${SB}/rest/v1/reservas?data_reserva=eq.${encodeURIComponent(date.value)}&campo=eq.${encodeURIComponent(courts[ci])}`;
@@ -313,13 +279,9 @@ async function saveDemo(){
    const overlaps=existing.some(r=>{const a=toMin(r.hora_inicio),b=a+Number(r.duracao_min);return startMin<b&&startMin+duration>a;});
    if(overlaps){alert("⚠️ Este campo já está ocupado nesse horário.");return;}
    const payload={data_reserva:date.value,hora_inicio:hora,duracao_min:duration,campo:courts[ci],tipo:selectedType,jogador_id:jogadorId,jogador_nome:jogadorNome,convidado:convidado||null,utilizador_id:currentUser.id};
-   const ins=await fetch(`${SB}/rest/v1/reservas`,{method:"POST",headers:{...authHeaders(true),Prefer:"return=representation"},body:JSON.stringify(payload)});
+   const ins=await fetch(`${SB}/rest/v1/reservas`,{method:"POST",headers:{...authHeaders(true),Prefer:"return=minimal"},body:JSON.stringify(payload)});
    if(!ins.ok)throw new Error(await ins.text()||"Erro ao guardar");
-   const savedRows=await ins.json();
-   const saved=Array.isArray(savedRows)?savedRows[0]:savedRows;
-   const emailOk=await enviarEmailConfirmacao({...payload,id:saved?.id,email:jogadorEmail});
-   closeModal(); await renderReal();
-   alert(emailOk ? "✅ Reserva guardada e email de confirmação enviado." : "✅ Reserva guardada. ⚠️ Email de confirmação não enviado.");
+   closeModal(); await renderReal(); alert("✅ Reserva guardada com sucesso.");
  }catch(e){alert("Não foi possível guardar a reserva.\n\n"+e.message)}
 }
 async function alterarReserva(ev){

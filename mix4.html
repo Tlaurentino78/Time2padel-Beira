@@ -18,7 +18,7 @@
 <script>
 const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';const FIELDS=['Visioluz','Mozfert','Orangefreight','Lenmed/MSS','F Chiveve','Time2padel'];let token=localStorage.getItem('t2p_access')||'',players=[],current=null,teams=[],matches=[],selectedFields=[];const $=id=>document.getElementById(id);const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
 async function api(path,opt={}){const h={apikey:KEY,'Content-Type':'application/json',...(opt.headers||{})};if(token)h.Authorization='Bearer '+token;const r=await fetch(SB+path,{...opt,headers:h});const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch(e){d=t}if(!r.ok)throw Error(d?.message||d?.error_description||String(d)||('HTTP '+r.status));return d}
-function renderFields(){ $('fieldChoices').innerHTML=FIELDS.map(f=>`<label class="courtOpt ${selectedFields.includes(f)?'selected':''}"><input type="checkbox" data-f="${esc(f)}" ${selectedFields.includes(f)?'checked':''}> ${esc(f)}</label>`).join('');document.querySelectorAll('[data-f]').forEach(x=>x.onchange=()=>{if(x.checked){if(selectedFields.length>=2){x.checked=false;return}selectedFields.push(x.dataset.f)}else selectedFields=selectedFields.filter(f=>f!==x.dataset.f);renderFields()})}
+function renderFields(){ $('fieldChoices').innerHTML=FIELDS.map(f=>`<label class="courtOpt ${selectedFields.includes(f)?'selected':''}"><input type="checkbox" data-f="${esc(f)}" ${selectedFields.includes(f)?'checked':''}> ${esc(f)}</label>`).join('');document.querySelectorAll('[data-f]').forEach(x=>x.onchange=()=>{if(x.checked){if(selectedFields.length>=2){x.checked=false;return}selectedFields.push(x.dataset.f)}else selectedFields=selectedFields.filter(f=>f!==x.dataset.f);renderFields();saveDraft()})}
 function parseTeams(v){return v.split(/\r?\n/).map(x=>x.replace(/^\s*\d+\s*[-.)]\s*/,'').trim()).filter(Boolean).slice(0,4)}function splitPlayers(t){return String(t||'').split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2)}
 function findPlayer(q){const n=norm(q);let a=players.filter(p=>norm(p.nome)===n);if(a.length===1)return a[0];a=players.filter(p=>{const s=norm(p.nome);return s.startsWith(n)||s.includes(n)||n.startsWith(s)});if(a.length===1)return a[0];const toks=n.split(' ').filter(Boolean);a=players.filter(p=>{const s=norm(p.nome).split(' ');return toks.every(t=>s.some(z=>z.startsWith(t)))});return a.length===1?a[0]:null}
 function preview(){const raw=parseTeams($('teams').value);$('preview').innerHTML=raw.map((t,i)=>'<div><b>Equipa '+(i+1)+':</b> '+splitPlayers(t).map(n=>{const p=findPlayer(n);return esc(p?.nome||n)+' <span class="pill '+(p?'ok':'warn')+'">'+esc(p?.nivel||'Sem nível')+'</span>'}).join(' + ')+'</div>').join('')}
@@ -115,10 +115,10 @@ async function savePlayers(){
  }catch(e){$('playersMsg').innerHTML='<span class="err">Erro ao guardar: '+esc(e.message)+'</span>'}finally{$('savePlayersBtn').disabled=false}
 }
 
-const DRAFT_KEY='t2p_mega_mix_draft_v2';
+const DRAFT_KEY='t2p_mix4_draft_v3';
 function saveDraft(){
  try{
-  const data={level:$('level')?.value||'',date:$('date')?.value||'',teams:$('teams')?.value||'',selectedFields:[...selectedFields]};
+  const data={level:$('level')?.value||'',date:$('date')?.value||'',teams:$('teams')?.value||'',selectedFields:[...selectedFields],savedAt:Date.now()};
   localStorage.setItem(DRAFT_KEY,JSON.stringify(data));
  }catch(e){}
 }
@@ -129,14 +129,26 @@ function restoreDraft(){
   if(d.level && $('level'))$('level').value=d.level;
   if(d.date && $('date'))$('date').value=d.date;
   if(typeof d.teams==='string' && $('teams'))$('teams').value=d.teams;
-  if(Array.isArray(d.selectedFields))selectedFields=d.selectedFields.slice(0,4);
+  if(Array.isArray(d.selectedFields))selectedFields=d.selectedFields.slice(0,2);
   renderFields(); preview();
   return true;
  }catch(e){return false}
 }
 function clearDraft(){try{localStorage.removeItem(DRAFT_KEY)}catch(e){}}
+async function restoreActiveMix(){
+ try{
+  const xs=await api('/rest/v1/torneios?formato=eq.Mix%204&publicado=eq.false&select=id,nome,nivel,data_torneio,created_at&order=created_at.desc&limit=1');
+  if(!xs.length)return false;
+  const t=xs[0];
+  const ok=confirm('Encontrámos um Mix 4 em curso.\n\n'+(t.nome||'Mix 4')+'\n\nQueres continuar este Mix?\n\nOK = Continuar\nCancelar = Deixar para abrir depois em “Mix 4 Anteriores”.');
+  if(!ok)return false;
+  await loadTournament(t.id);
+  return true;
+ }catch(e){$('status').innerHTML='<span class="err">Não foi possível verificar o Mix 4 em curso: '+esc(e.message)+'</span>';return false}
+}
+window.addEventListener('beforeunload',()=>{if(!current)saveDraft()});
 
 async function login(){try{const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value,password:$('password').value})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||'Falha no login');token=d.access_token;localStorage.setItem('t2p_access',token);await start()}catch(e){$('loginMsg').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
-async function start(){try{await api('/auth/v1/user');$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');await loadPlayers();renderFields();$('date').value=new Date().toISOString().slice(0,10);restoreDraft();preview();await loadOldMixes()}catch(e){localStorage.removeItem('t2p_access');token='';$('loginMsg').innerHTML='<span class="err">Sessão inválida.</span>'}}
+async function start(){try{await api('/auth/v1/user');$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');await loadPlayers();renderFields();$('date').value=new Date().toISOString().slice(0,10);const hadDraft=restoreDraft();preview();await loadOldMixes();const restored=await restoreActiveMix();if(!restored&&hadDraft){$('status').innerHTML='<span class="ok">✓ Rascunho recuperado. Os dados que estavas a preparar foram mantidos.</span>'}}catch(e){localStorage.removeItem('t2p_access');token='';$('loginMsg').innerHTML='<span class="err">Sessão inválida.</span>'}}
 $('saveMix').onclick=saveMix;$('editPlayersBtn').onclick=openPlayersEditor;$('savePlayersBtn').onclick=savePlayers;$('cancelPlayersBtn').onclick=()=>$('playersModal').classList.add('hidden');$('playersModal').onclick=e=>{if(e.target.id==='playersModal')$('playersModal').classList.add('hidden')};$('storyBtn').onclick=createStory;$('oldBtn').onclick=async()=>{$('oldModal').classList.remove('hidden');await loadOldMixes()};$('closeOld').onclick=()=>$('oldModal').classList.add('hidden');$('oldModal').onclick=e=>{if(e.target.id==='oldModal')$('oldModal').classList.add('hidden')};$('openOrder').onclick=()=>{$('gameArea').scrollIntoView({behavior:'smooth',block:'start'})};$('login').onclick=login;$('newMix').onclick=newMix;$('level').onchange=()=>{saveDraft();preview()};$('date').onchange=saveDraft;$('teams').oninput=()=>{preview();saveDraft()};$('logout').onclick=()=>{localStorage.removeItem('t2p_access');location.reload()};renderFields();if(token)start();
 </script></body></html>

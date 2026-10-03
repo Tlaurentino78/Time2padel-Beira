@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Time2Padel — Mix Americano</title>
+<style>
+:root{--g:#20cf68;--dark:#303030;--bg:#f4f4f4;--line:#ddd}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#222}header{background:var(--dark);color:#fff;padding:11px 12px;font-size:21px;font-weight:900;text-align:center}.wrap{max-width:1100px;margin:auto;padding:10px}.card{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}.head{background:var(--g);color:#fff;padding:12px 14px;font-size:20px;font-weight:900}.body{padding:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-weight:800;margin-bottom:5px}.field input,textarea{width:100%;border:1px solid #aaa;border-radius:8px;padding:10px;font-size:16px}.field input{height:44px}textarea{min-height:190px;white-space:pre-wrap}.btn{padding:11px 15px;border:1px solid #aaa;background:#fff;border-radius:8px;font-weight:900;font-size:16px}.green{background:var(--g);border-color:var(--g);color:#fff}.bigChoice{display:grid;grid-template-columns:1fr 1fr;gap:12px}.choice{padding:24px 12px;font-size:20px;min-height:105px}.msg{margin-top:8px;font-weight:800}.err{color:#b00020}.ok{color:#159a52}.muted{font-size:12px;color:#777;margin-top:6px}.hidden{display:none}.order{overflow-x:auto}.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;min-width:0;gap:3px;background:#ddd}.board.mode8{grid-template-columns:repeat(2,minmax(0,1fr))}.board.mode12{grid-template-columns:repeat(3,minmax(0,1fr))}.court{background:#fff}.ct{background:var(--g);color:#fff;text-align:center;padding:10px;font-weight:900}.match{padding:8px 5px;border-bottom:1px solid #eee;text-align:center;min-height:145px}.round{font-size:12px;color:#777}.teams{display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;gap:4px;margin-top:12px}.team{font-size:12px;font-weight:900;line-height:1.25}.vs{font-size:10px;font-weight:900;color:#777}.scoreRow{display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;gap:4px;margin-top:7px}.score{width:40px;height:38px;border:2px solid #aaa;border-radius:8px;text-align:center;font-size:19px;font-weight:900;justify-self:center;padding:0}.done{font-size:11px;color:#159a52;font-weight:900;margin-top:5px}.roundCard{border:2px solid #ddd;border-radius:12px;margin-bottom:12px;overflow:hidden;background:#fff}.roundHead{background:#f2f2f2;text-align:center;font-weight:900;padding:9px;font-size:16px}.roundGames{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px}.mini{border:1px solid #ddd;border-radius:8px;padding:9px;text-align:center}.miniMeta{font-size:10px;color:#777}.miniTeams{font-size:12px;font-weight:800;line-height:1.3}.miniScore{font-weight:900;margin-top:5px}.tableWrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:600px}th,td{padding:8px;border-bottom:1px solid #eee;text-align:center}th:first-child,td:first-child{text-align:left}.pill{display:inline-block;padding:3px 7px;border-radius:12px;background:#eee;font-size:11px}.okP{background:#e8fff1}.warnP{background:#fff3cd;color:#8a6100}.saveBox{background:#f7fff9;border:2px solid var(--g);border-radius:10px;padding:14px}.row{display:flex;gap:8px;flex-wrap:wrap}.oldRow{border:1px solid #ddd;border-radius:9px;padding:10px;margin-top:8px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;padding:16px;overflow:auto}.modalBox{max-width:760px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden}.modalHead{background:var(--g);color:#fff;padding:14px;font-size:19px;font-weight:900}
+@media(max-width:700px){.grid,.bigChoice{grid-template-columns:1fr}.board{width:100%;min-width:0;gap:2px}.board.mode8{grid-template-columns:repeat(2,minmax(0,1fr))}.board.mode12{grid-template-columns:repeat(3,minmax(0,1fr))}.match{min-height:138px;padding:7px 3px}.score{width:36px;height:36px;font-size:18px}.teams,.scoreRow{grid-template-columns:1fr 18px 1fr;gap:2px}.team{font-size:11px}.roundGames{grid-template-columns:1fr 1fr}}
+</style></head>
+<body><header>Time2Padel 🏆 — Mix Americano</header><div class="wrap">
+<div id="loginCard" class="card"><div class="head">🔐 Administrador</div><div class="body"><div class="grid"><div class="field"><label>Email</label><input id="email" type="email" value="tiago@visioluz.com"></div><div class="field"><label>Password</label><input id="password" type="password"></div></div><button class="btn green" id="login" style="margin-top:10px;width:100%">Entrar</button><div id="loginMsg" class="msg"></div></div></div>
+<div id="app" class="hidden">
+<div style="margin:12px 0 16px"><a href="index.html" class="btn" style="display:block;text-align:center;text-decoration:none;font-size:17px">🏠 Voltar ao Menu</a></div>
+<div id="choiceCard" class="card"><div class="head">🎾 Escolher formato</div><div class="body"><div class="bigChoice"><button class="btn green choice" id="choice8">8 PLAYERS<br><span style="font-size:15px">🏆 21 POINTS</span></button><button class="btn green choice" id="choice12">12 PLAYERS<br><span style="font-size:15px">🏆 16 POINTS</span></button></div><div class="muted" style="margin-top:10px">Formato Americano: todos jogam em todas as rondas e os parceiros vão rodando.</div></div></div>
+<div id="setup" class="hidden"><div class="card"><div class="head" id="setupHead">🎾 Novo Mix Americano</div><div class="body"><div class="grid"><div class="field"><label>Data</label><input id="date" type="date"></div><div class="field"><label>Formato</label><input id="formatLabel" readonly></div></div><div class="field" style="margin-top:10px"><label>Jogadores</label><textarea id="playersText" name="mix_players_input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></textarea></div><div class="muted">Um jogador por linha. Os nomes existentes são reconhecidos pela Base de Dados.</div><button class="btn green" id="create" style="width:100%;margin-top:10px">🎾 Criar Mix Americano</button><button class="btn" id="backChoice" style="width:100%;margin-top:8px">← Escolher outro formato</button><div id="setupMsg" class="msg"></div></div></div></div>
+<div id="gameArea" class="hidden">
+<div class="card"><div class="body"><button class="btn green" id="openOrder" style="width:100%;font-size:17px">🎾 Abrir Ordem de Jogos</button></div><div class="head">🏆 Ordem de Jogos</div><div class="body"><div id="progress"></div></div><div id="board"></div></div>
+<div class="card"><div class="head">📸 Rondas</div><div class="body" id="rounds"></div></div>
+<div class="card"><div class="head">📊 Classificação</div><div class="body" id="ranking"></div></div>
+<div class="card"><div class="body"><div class="saveBox"><b style="font-size:18px">💾 Finalizar Mix Americano</b><div id="saveMeta" class="muted"></div><div id="mixStatus" class="pill warnP" style="margin:8px 0">Em curso</div><button class="btn green" id="saveMix" style="width:100%;font-size:17px">💾 Guardar / Finalizar</button><button class="btn" id="editPlayers" style="width:100%;margin-top:8px">✏️ Alterar jogadores</button><button class="btn" id="changeFormat" style="width:100%;margin-top:8px">🔄 Novo formato</button><div id="saveMsg" class="msg"></div></div></div></div>
+</div>
+<div class="card"><div class="head">☁️ Mixes Americanos guardados online</div><div class="body"><div class="row"><button class="btn green" id="newMix">🆕 Novo Mix Americano</button><button class="btn" id="oldBtn">📚 Mixes Anteriores</button><button class="btn" id="logout">Sair</button></div><div id="status" class="msg"></div></div></div>
+</div></div>
+<div class="modal hidden" id="oldModal"><div class="modalBox"><div class="modalHead">📚 Mixes Americanos Anteriores</div><div class="body"><div id="oldList"></div><button class="btn" id="closeOld" style="margin-top:10px">Fechar</button></div></div></div>
+<div class="modal hidden" id="editModal"><div class="modalBox"><div class="modalHead">✏️ Alterar jogadores</div><div class="body"><div id="editList"></div><button class="btn green" id="savePlayers" style="width:100%;margin-top:10px">💾 Guardar jogadores</button><button class="btn" id="cancelEdit" style="width:100%;margin-top:8px">Cancelar</button><div id="editMsg" class="msg"></div></div></div></div>
+<script>
+const SB='https://gvsotgzntwfpikigoxdj.supabase.co',KEY='sb_publishable_zeRBh7-ziG_jgF-CTeRQRQ_NFVmFGWc';let token=localStorage.getItem('t2p_access')||'',players=[],current=null,matches=[],playerTeams=[],pairTeams=[],mode=null,scoreTimers={};const $=id=>document.getElementById(id);const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+async function api(path,opt={}){const h={apikey:KEY,'Content-Type':'application/json',...(opt.headers||{})};if(token)h.Authorization='Bearer '+token;const r=await fetch(SB+path,{...opt,headers:h});const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch(e){d=t}if(!r.ok)throw Error(d?.message||d?.error_description||String(d)||('HTTP '+r.status));return d}
+function findPlayer(q){const n=norm(q);let a=players.filter(p=>norm(p.nome)===n);if(a.length===1)return a[0];a=players.filter(p=>norm(p.nome).includes(n)||n.includes(norm(p.nome)));return a.length===1?a[0]:null}
+function schedule(n){let a=Array.from({length:n},(_,i)=>i),rounds=[];for(let r=0;r<n-1;r++){let pairs=[];for(let i=0;i<n/2;i++)pairs.push([a[i],a[n-1-i]]);let matches=[];for(let i=0;i<pairs.length;i+=2)matches.push([pairs[i],pairs[i+1]]);rounds.push(matches);a=[a[0],a[n-1],...a.slice(1,n-1)];}return rounds}
+function setMode(n){mode=n;const target=n===8?21:16;clearDraft();$('formatLabel').value=`${n} jogadores — ${target} pontos`;$('setupHead').textContent=`🎾 Mix Americano — ${n} Players / ${target} Points`;$('playersText').value='';$('choiceCard').classList.add('hidden');$('setup').classList.remove('hidden');requestAnimationFrame(()=>{$('playersText').value='';$('playersText').focus()})}
+function saveDraft(){try{localStorage.setItem('t2p_americano_draft',JSON.stringify({mode,date:$('date')?.value||'',players:$('playersText')?.value||''}))}catch(e){}}
+function restoreDraft(){try{const d=JSON.parse(localStorage.getItem('t2p_americano_draft')||'null');if(!d)return;if(d.date)$('date').value=d.date;if(d.mode===8||d.mode===12)setMode(d.mode);if(d.players)$('playersText').value=d.players}catch(e){}}
+function clearDraft(){try{localStorage.removeItem('t2p_americano_draft')}catch(e){}}
+const ACTIVE_KEY='t2p_americano_active_v1';function saveActive(){try{if(current?.id)localStorage.setItem(ACTIVE_KEY,String(current.id));}catch(e){}}function clearActive(){try{localStorage.removeItem(ACTIVE_KEY)}catch(e){}}async function restoreActive(){try{const id=localStorage.getItem(ACTIVE_KEY);if(id){await loadTournament(id);return true}}catch(e){clearActive()}return false}
+function parseNames(){return $('playersText').value.split(/\r?\n/).map(x=>String(x||'').replace(/^\s*\d+\s*[-.)]\s*/,'').replace(/^[\s🎾🏓🏸🎾🇺🇸🇵🇹🇲🇿•·]+/,'').replace(/^[\s:–—-]+/,'').trim()).filter(Boolean).slice(0,mode)}
+function pairLabel(eid){const t=pairTeams.find(x=>x.id===eid);return t?.nome||'—'}
+function renderBoard(){const courts=mode===8?2:3,cols=Array.from({length:courts},()=>[]);matches.forEach(m=>{const c=(m.campo||1)-1;cols[c].push(`<div class="match"><div class="round">Ronda ${m.ordemRound}</div><div class="teams"><div class="team">${esc(pairLabel(m.equipa_a_id))}</div><div class="vs">VS</div><div class="team">${esc(pairLabel(m.equipa_b_id))}</div></div><div class="scoreRow"><input class="score" data-id="${m.id}" data-s="a" value="${m.score_a??''}" inputmode="numeric" maxlength="2"><div class="vs">-</div><input class="score" data-id="${m.id}" data-s="b" value="${m.score_b??''}" inputmode="numeric" maxlength="2"></div>${m.estado==='finalizado'?'<div class="done">✓ Resultado guardado</div>':''}</div>`)});$('board').innerHTML=`<div class="order"><div class="board mode${mode}">${cols.map((c,i)=>`<div class="court"><div class="ct">Campo ${i+1}</div>${c.join('')}</div>`).join('')}</div></div>`;document.querySelectorAll('.score').forEach(x=>{x.oninput=()=>queueScore(x.dataset.id,x.dataset.s,x.value);x.onchange=()=>queueScore(x.dataset.id,x.dataset.s,x.value,true)})}
+function queueScore(id,side,val,immediate=false){
+ val=String(val).replace(/\D/g,'').slice(0,2);
+ const m=matches.find(x=>x.id===id); if(!m)return;
+ const target=mode===8?21:16;
+ const key=side==='a'?'score_a':'score_b';
+ const otherKey=side==='a'?'score_b':'score_a';
+ clearTimeout(scoreTimers[id]);
+ if(val!=='' && +val>target){$('status').innerHTML='<span class=\"err\">O resultado não pode ultrapassar '+target+' pontos.</span>';return}
+ const n=val===''?null:+val;
+ m[key]=n;
+ // No Americano, o total é sempre fixo: 21 (ou 16 no formato de 12 jogadores).
+ // Ao introduzir um lado, o outro é preenchido automaticamente.
+ if(n!=null){
+   m[otherKey]=target-n;
+   const otherInput=document.querySelector('.score[data-id=\"'+id+'\"][data-s=\"'+(side==='a'?'b':'a')+'\"]');
+   if(otherInput)otherInput.value=String(target-n);
+   m.estado='finalizado';
+ }else{
+   m[otherKey]=null;
+   const otherInput=document.querySelector('.score[data-id=\"'+id+'\"][data-s=\"'+(side==='a'?'b':'a')+'\"]');
+   if(otherInput)otherInput.value='';
+   m.estado='pendente';
+ }
+ renderRanking();renderRounds();
+ if(immediate)saveScorePair(id);else scoreTimers[id]=setTimeout(()=>saveScorePair(id),350)
+}
+async function saveScorePair(id){
+ const m=matches.find(x=>x.id===id); if(!m)return;
+ const target=mode===8?21:16;
+ const a=m.score_a==null?null:+m.score_a,b=m.score_b==null?null:+m.score_b;
+ if(a!=null&&b!=null&&a+b!==target){$('status').innerHTML='<span class=\"err\">O resultado tem de somar '+target+' pontos.</span>';return}
+ try{
+   await api('/rest/v1/jogos?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({score_a:a,score_b:b,estado:(a!=null&&b!=null)?'finalizado':'pendente'})});
+   m.score_a=a;m.score_b=b;m.estado=(a!=null&&b!=null)?'finalizado':'pendente';
+   renderBoard();renderRanking();renderRounds();
+ }catch(e){$('status').innerHTML='<span class=\"err\">Erro ao guardar resultado: '+esc(e.message)+'</span>'}
+}
+async function saveScore(id,side,val){return saveScorePair(id)}
+function renderRounds(){const rs={};matches.forEach(m=>(rs[m.ordemRound]??=[]).push(m));let h='';Object.keys(rs).sort((a,b)=>a-b).forEach(r=>{h+=`<div class="roundCard"><div class="roundHead">Ronda ${r}</div><div class="roundGames">${rs[r].map(m=>`<div class="mini"><div class="miniMeta">Campo ${m.campo}</div><div class="miniTeams">${esc(pairLabel(m.equipa_a_id))}<br>VS<br>${esc(pairLabel(m.equipa_b_id))}</div><div class="miniScore">${m.score_a??'—'} - ${m.score_b??'—'}</div></div>`).join('')}</div></div>`});$('rounds').innerHTML=h}
+function renderRanking(){const map={};for(const p of playerTeams)map[norm(p.nome)]={id:p.id,nome:p.nome,pts:0,j:0,w:0};matches.forEach(m=>{if(m.estado!=='finalizado'||m.score_a==null||m.score_b==null)return;const a=+m.score_a,b=+m.score_b;for(const [eid,pts,win] of [[m.equipa_a_id,a,a>b],[m.equipa_b_id,b,b>a]]){const pair=pairTeams.find(x=>x.id===eid);if(!pair)continue;pair.nome.split(/\s*\/\s*/).forEach(n=>{const p=map[norm(n)];if(p){p.pts+=pts;p.j++;if(win)p.w++}})}});const arr=Object.values(map).sort((a,b)=>b.pts-a.pts||b.w-a.w||a.nome.localeCompare(b.nome));$('ranking').innerHTML=`<div class="tableWrap"><table><tr><th>Pos.</th><th>Jogador</th><th>Pontos</th><th>Jogos</th><th>Vitórias</th></tr>${arr.map((p,i)=>`<tr><td><b>${i+1}º</b></td><td>${esc(p.nome)}</td><td><b>${p.pts}</b></td><td>${p.j}</td><td>${p.w}</td></tr>`).join('')}</table></div>`;$('progress').textContent=`Jogos: ${matches.filter(m=>m.estado==='finalizado').length}/${matches.length}`}
+function updateMeta(){if(!current)return;$('saveMeta').textContent=`${current.nome||'Mix Americano'} · ${mode} jogadores · ${mode===8?21:16} pontos`}
+function updateStatus(){if(!current)return;const done=!!current.publicado;$('mixStatus').textContent=done?'Concluído':'Em curso';$('mixStatus').className='pill '+(done?'okP':'warnP');$('saveMix').disabled=done;$('saveMix').textContent=done?'✓ Concluído':'💾 Guardar / Finalizar'}
+function makeName(date){return `Mix Americano — ${mode} Players — ${date.split('-').reverse().join('/')}`}
+async function nextName(date){const base=makeName(date),rows=await api('/rest/v1/torneios?formato=eq.Mix%20Americano&data_torneio=eq.'+encodeURIComponent(date)+'&select=nome');const used=new Set();for(const r of rows||[]){const n=String(r.nome||'');if(n===base)used.add(0);const m=n.match(new RegExp('^'+base.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')+' \\((\\d+)\\)$'));if(m)used.add(+m[1])}if(!used.has(0))return base;let i=2;while(used.has(i))i++;return `${base} (${i})`}
+async function createMix(){
+ const names=parseNames();
+ if(names.length!==mode)return $('setupMsg').innerHTML=`<span class="err">Indica exatamente ${mode} jogadores.</span>`;
+ const dup=names.map(norm).filter((x,i,a)=>a.indexOf(x)!==i);
+ if(dup.length)return $('setupMsg').innerHTML='<span class="err">Existem jogadores repetidos.</span>';
+ try{
+  $('create').disabled=true;
+  $('setupMsg').innerHTML='<span class="muted">A criar o Mix…</span>';
+  const date=$('date').value||new Date().toISOString().slice(0,10);
+  const target=mode===8?21:16;
+  const name=await nextName(date);
+  const t=(await api('/rest/v1/torneios',{
+   method:'POST',headers:{Prefer:'return=representation'},
+   body:JSON.stringify({nome:name,formato:'Mix Americano',nivel:`${mode} Players`,data_torneio:date,hora_inicio:null,campos:mode===8?2:3,numero_equipas:mode,publicado:false})
+  }))[0];
+  current=t;
+
+  // 1) Criar todos os jogadores/equipas numa única operação.
+  const teamRows=names.map((n,i)=>({torneio_id:t.id,nome:n,posicao_inicial:i+1}));
+  playerTeams=await api('/rest/v1/equipas?select=*',{
+   method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(teamRows)
+  });
+  playerTeams.sort((a,b)=>(a.posicao_inicial||0)-(b.posicao_inicial||0));
+
+  // 2) Criar os pares e os respetivos jogos em lote.
+  const rounds=schedule(mode);
+  const pairRows=[];
+  const pairMeta=[];
+  let ord=1;
+  for(let r=0;r<rounds.length;r++){
+   for(let c=0;c<rounds[r].length;c++){
+    const [p1,p2]=rounds[r][c];
+    const a=playerTeams[p1[0]],b=playerTeams[p1[1]],aa=playerTeams[p2[0]],bb=playerTeams[p2[1]];
+    pairRows.push({torneio_id:t.id,nome:`${a.nome} / ${b.nome}`,posicao_inicial:1000+ord});
+    pairMeta.push({r,c,ord,a:a.nome,b:b.nome,aa:aa.nome,bb:bb.nome});
+    pairRows.push({torneio_id:t.id,nome:`${aa.nome} / ${bb.nome}`,posicao_inicial:2000+ord});
+    pairMeta.push({r,c,ord,a:aa.nome,b:bb.nome,aa:null,bb:null});
+    ord++;
+   }
+  }
+  const createdPairs=await api('/rest/v1/equipas?select=*',{
+   method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(pairRows)
+  });
+  pairTeams=createdPairs.sort((a,b)=>(a.posicao_inicial||0)-(b.posicao_inicial||0));
+
+  // 3) Ligações dos jogadores aos pares + equipas individuais, também em lote.
+  const links=[];
+  for(const t1 of playerTeams){const p=findPlayer(t1.nome);links.push({equipa_id:t1.id,jogador_id:p?.id||null,nome_registado:t1.nome,ordem:1});}
+  for(let i=0;i<pairTeams.length;i++){
+   const pt=pairTeams[i];
+   const names2=String(pt.nome||'').split(/\s*\/\s*/).map(x=>x.trim()).filter(Boolean);
+   names2.forEach((nm,j)=>{const p=findPlayer(nm);links.push({equipa_id:pt.id,jogador_id:p?.id||null,nome_registado:nm,ordem:j+1});});
+  }
+  await api('/rest/v1/equipa_jogadores',{
+   method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(links)
+  });
+
+  // 4) Criar todos os jogos de uma só vez.
+  const games=[];
+  ord=1;
+  for(let r=0;r<rounds.length;r++){
+   for(let c=0;c<rounds[r].length;c++){
+    const pa=pairTeams.find(x=>x.posicao_inicial===1000+ord);
+    const pb=pairTeams.find(x=>x.posicao_inicial===2000+ord);
+    games.push({torneio_id:t.id,equipa_a_id:pa.id,equipa_b_id:pb.id,fase:'Grupo',ordem:ord,campo:c+1,estado:'pendente',score_a:null,score_b:null});
+    ord++;
+   }
+  }
+  matches=await api('/rest/v1/jogos?select=*',{
+   method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(games)
+  });
+  matches.sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  matches.forEach((m,i)=>{m.ordemRound=Math.floor(i/(mode===8?2:3))+1;m.pontos_alvo=target});
+
+  $('setup').classList.add('hidden');
+  $('gameArea').classList.remove('hidden');
+  saveActive();updateMeta();updateStatus();renderBoard();renderRounds();renderRanking();clearDraft();
+  $('status').innerHTML='<span class="ok">✓ Mix Americano criado e guardado online.</span>';
+  $('gameArea').scrollIntoView({behavior:'smooth',block:'start'});
+  // O histórico é carregado em segundo plano para não atrasar a abertura do Mix.
+  setTimeout(()=>loadOld().catch(()=>{}),0);
+ }catch(e){
+  $('setupMsg').innerHTML='<span class="err">Erro ao criar: '+esc(e.message)+'</span>';
+ }finally{$('create').disabled=false}
+}
+async function saveMix(){if(!current||current.publicado)return;const pending=matches.filter(m=>m.estado!=='finalizado'||m.score_a==null||m.score_b==null);if(pending.length)return $('saveMsg').innerHTML=`<span class="err">Ainda faltam ${pending.length} jogo(s).</span>`;try{const d=(await api('/rest/v1/torneios?id=eq.'+current.id,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({publicado:true,updated_at:new Date().toISOString()})}))[0]||{};current={...current,...d,publicado:true};updateStatus();$('saveMsg').innerHTML='<span class="ok">✓ Mix Americano finalizado e guardado.</span>';loadOld()}catch(e){$('saveMsg').innerHTML='<span class="err">Erro: '+esc(e.message)+'</span>'}}
+function openEdit(){if(!current)return;const names=playerTeams.map(x=>x.nome);$('editList').innerHTML=names.map((n,i)=>`<div style="margin-bottom:8px"><b>Jogador ${i+1}</b><input class="ep" data-i="${i}" value="${esc(n)}" style="width:100%;padding:10px;border:1px solid #aaa;border-radius:8px;margin-top:4px"></div>`).join('');$('editModal').classList.remove('hidden')}
+async function saveEdited(){const vals=[...document.querySelectorAll('.ep')];const names=vals.map(x=>x.value.trim());if(names.some(x=>!x))return $('editMsg').innerHTML='<span class="err">Preenche todos os nomes.</span>';try{for(let i=0;i<playerTeams.length;i++){await api('/rest/v1/equipas?id=eq.'+playerTeams[i].id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({nome:names[i]})});playerTeams[i].nome=names[i]}matches.forEach(m=>{const pa=playerTeams.find(x=>x.id===m.equipa_a_id),pb=playerTeams.find(x=>x.id===m.equipa_b_id);});$('editModal').classList.add('hidden');renderRanking();renderRounds();renderBoard()}catch(e){$('editMsg').innerHTML='<span class="err">Erro: '+esc(e.message)+'</span>'}}
+async function loadTournament(id){const t=(await api('/rest/v1/torneios?id=eq.'+id+'&select=*'))[0];if(!t)throw Error('Mix não encontrado.');current=t;saveActive();mode=String(t.nivel||'').startsWith('8')?8:12;const all=await api('/rest/v1/equipas?torneio_id=eq.'+id+'&select=*&order=posicao_inicial.asc');playerTeams=all.filter(x=>x.posicao_inicial<1000);pairTeams=all.filter(x=>x.posicao_inicial>=1000);matches=await api('/rest/v1/jogos?torneio_id=eq.'+id+'&select=*&order=ordem.asc');matches.forEach((m,i)=>{m.ordemRound=Math.floor(i/(mode===8?2:3))+1});$('choiceCard').classList.add('hidden');$('setup').classList.add('hidden');$('gameArea').classList.remove('hidden');saveActive();updateMeta();updateStatus();renderBoard();renderRounds();renderRanking();await loadOld()}
+async function deleteMix(id){
+ const eq=await api('/rest/v1/equipas?torneio_id=eq.'+id+'&select=id');
+ await api('/rest/v1/jogos?torneio_id=eq.'+id,{method:'DELETE'});
+ for(const e of eq) await api('/rest/v1/equipa_jogadores?equipa_id=eq.'+e.id,{method:'DELETE'});
+ await api('/rest/v1/equipas?torneio_id=eq.'+id,{method:'DELETE'});
+ await api('/rest/v1/torneios?id=eq.'+id,{method:'DELETE'});
+ if(current?.id===id){current=null;matches=[];playerTeams=[];pairTeams=[];clearActive();$('gameArea').classList.add('hidden');}
+}
+async function loadOld(){try{
+ const xs=await api('/rest/v1/torneios?formato=eq.Mix%20Americano&select=id,nome,nivel,data_torneio,publicado,created_at&order=data_torneio.desc,created_at.desc');
+ $('oldList').innerHTML=xs.length?xs.map(t=>`<div class="oldRow"><b>${esc(t.nome)}</b> <span class="pill ${t.publicado?'okP':'warnP'}">${t.publicado?'Concluído':'Em curso'}</span><div class="muted">${esc(t.data_torneio||'')}</div><div class="row" style="margin-top:8px"><button class="btn green" data-open="${t.id}">Abrir</button><button class="btn" style="color:#b00020;border-color:#d33" data-delete="${t.id}">🗑 Apagar</button></div></div>`).join(''):'<div class="muted">Ainda não existem Mixes.</div>';
+ document.querySelectorAll('[data-open]').forEach(b=>b.onclick=async()=>{try{await loadTournament(b.dataset.open);$('oldModal').classList.add('hidden')}catch(e){$('status').innerHTML='<span class="err">'+esc(e.message)+'</span>'}});
+ document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=async()=>{
+   const t=xs.find(x=>String(x.id)===String(b.dataset.delete));
+   if(!confirm((t?.publicado?'Apagar este Mix Americano e todos os seus jogos?':'Abandonar e apagar este Mix Americano em curso?')+'\n\nEsta ação não pode ser desfeita.')) return;
+   try{b.disabled=true;await deleteMix(b.dataset.delete);await loadOld();$('status').innerHTML='<span class="ok">✓ Mix Americano apagado.</span>'}
+   catch(e){b.disabled=false;$('status').innerHTML='<span class="err">Erro ao apagar: '+esc(e.message)+'</span>'}
+ });
+ }catch(e){$('oldList').innerHTML='<span class="err">'+esc(e.message)+'</span>'}}
+async function start(){try{await api('/auth/v1/user');$('loginCard').classList.add('hidden');$('app').classList.remove('hidden');players=await api('/rest/v1/jogadores?select=id,nome,nivel&order=nome.asc');$('date').value=new Date().toISOString().slice(0,10);if(!(await restoreActive()))await loadOld();}catch(e){localStorage.removeItem('t2p_access');token='';$('loginMsg').innerHTML='<span class="err">Sessão inválida.</span>'}}
+$('choice8').onclick=()=>setMode(8);$('choice12').onclick=()=>setMode(12);$('backChoice').onclick=()=>{clearDraft();$('playersText').value='';$('setup').classList.add('hidden');$('choiceCard').classList.remove('hidden')};$('create').onclick=createMix;$('saveMix').onclick=saveMix;$('editPlayers').onclick=openEdit;$('savePlayers').onclick=saveEdited;$('cancelEdit').onclick=()=>$('editModal').classList.add('hidden');$('changeFormat').onclick=()=>{if(current&&!current.publicado){if(!confirm('Existe um Mix em curso. Continuar sem o abrir?'))return}current=null;matches=[];playerTeams=[];pairTeams=[];clearActive();$('gameArea').classList.add('hidden');$('setup').classList.add('hidden');$('choiceCard').classList.remove('hidden')};$('newMix').onclick=()=>{clearDraft();$('playersText').value='';$('gameArea').classList.add('hidden');$('setup').classList.add('hidden');$('choiceCard').classList.remove('hidden')};$('oldBtn').onclick=async()=>{$('oldModal').classList.remove('hidden');await loadOld()};$('closeOld').onclick=()=>$('oldModal').classList.add('hidden');$('openOrder').onclick=()=>{$('gameArea').scrollIntoView({behavior:'smooth',block:'start'});};$('logout').onclick=()=>{localStorage.removeItem('t2p_access');location.reload()};$('date').onchange=saveDraft;$('playersText').oninput=saveDraft;$('login').onclick=async()=>{try{const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value,password:$('password').value})});const d=await r.json();if(!r.ok)throw Error(d.error_description||d.msg||'Falha no login');token=d.access_token;localStorage.setItem('t2p_access',token);await start()}catch(e){$('loginMsg').innerHTML='<span class="err">'+esc(e.message)+'</span>'}};window.addEventListener('pageshow',()=>{if(!current&&!$('setup').classList.contains('hidden')){$('playersText').value='';}});if(token)start();
+</script></body></html>
